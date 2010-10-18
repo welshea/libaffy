@@ -1,0 +1,12 @@
+# -*- python -*-
+
+## SCons imports
+Import('rootEnv')
+
+## This stuff may or may not work depending on your platform.
+rootEnv.Command('libaffy.html', 'libaffy.texi',
+                'makeinfo --html --no-split -o $TARGET $SOURCE')
+rootEnv.Command('libaffy.info', 'libaffy.texi', 'makeinfo -o $TARGET $SOURCE')
+rootEnv.Command('libaffy.dvi', 'libaffy.texi', 'texi2dvi -o $TARGET $SOURCE')
+rootEnv.PDF(target = 'libaffy', source = 'libaffy.dvi')
+
