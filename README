@@ -1,0 +1,121 @@
+
+Building libaffy
+================
+
+Requirements
+------------
+
+Rather than make, libaffy uses the SCons build system (see
+http://wwww.scons.org/ for downloads and more information).  SCons is
+written in Python, thus your system must have a functioning Python
+intepreter installed.  Certain features of the language are used which
+require at least version 2.0 of Python.
+
+You will need at least an ANSI C89 compiler.  If you wish to compile GENE,
+a wxWidgets development environment must be installed.  The datExtractor
+utility requires libtiff if graphical output is desired.
+
+GNU texinfo and a TeX distribution are required to rebuild the documentation
+(release versions of libaffy include prebuilt docs).
+
+libaffy was developed in a Linux/POSIX environment, but some effort has
+been made to ensure that it builds in a Windows setting as well.
+
+Using SCons
+-----------
+
+Once SCons itself is installed and operational (test by invoking
+'scons --help'), you should be ready to build libaffy.
+
+At the top level of the source distribution, you should have an
+'SConstruct' file.  A few global settings are found here, but mainly
+it contains references to lower-level description files in subdirectories.
+
+Simply typing 'scons' at the topmost level will rebuild everything in
+the entire tree, with the exception of documentation (since it's somewhat
+platform specific in its build procedures -- see libaffy/doc/README for
+details).  Likewise, 'scons -c' will remove all the built files 
+(analogous to a 'make clean').
+
+You can provide filename/directory arguments to scons in order to build
+subsets of the source tree.  For example, 'scons libaffy/libaffy.a'
+would rebuild only the libaffy library itself, and 'scons affy-apps/'
+would rebuild all the applications.  In each case SCons will also
+automatically rebuild any applicable dependencies, so for example you 
+need not manually build libutils before building libaffy.  
+
+SCons also supports initiating a build from within a subdirectory of the
+source tree.  However, it requires a hint from the user.  You must give
+SCons the '-u' option to make it traverse the directory hierarchy
+upwards to find the top-level SConstruct file.  Unless you give an
+explicit target, SCons will rebuild everything from your current
+subdirectory down.
+
+Most of the environmental settings are determined automatically by
+SCons itself based on built-in knowledge of various platforms/compilers.
+If you need to make global modifications to the build environment, the
+root-level SConstruct file is a good place to start.  Most of the
+interesting things are set in easily-modified variables, so no knowledge
+of Python should really be required.
+
+Building With Different Compiler Options
+----------------------------------------
+
+It is commonly necessary to select compiler options different from the
+defaults selected by SCons, whether for optimization or debugging
+purposes.
+
+The libaffy build system provides a simple facility for selecting
+between groups of options.  This facility is built upon SCons build
+variables.  Build variables are set on the command line as follows:
+
+scons variable=value [...]
+
+Two variable are used to select compiler options, `cflags_bundle' and
+`compiler'.  They may be provided separately, together, or left out
+entirely.
+
+`compiler' is used to select which compiler toolchain should be used.
+SCons calls these toolchains "tools".  Specifying a value for
+`compiler' on the command-line causes the corresponding SCons tool to
+be used.  A list of tool identifiers can be found in the SCons
+documentation, but the following table is a partial listing at the
+time of writing:
+
+Tool identifier |  Compiler toolchain
+----------------+-------------------------------------------------
+    intelc      |  Intel C compiler
+    gcc         |  GNU C Compiler / GNU Compiler Collection
+    msvc        |  Microsoft Visual Studio
+    aixcc       |  IBM XLC
+    bcc32       |  Borland C compiler (?)
+
+If the `compiler' variable is not provided, then SCons will select a
+compiler based on runtime detection and an internal priority list.
+
+Next, the `cflags_bundle' variable is used to specify which set of
+optional compiler flags ought to be used.  Each set of flags has an
+identifier much like the `compiler' variable, except this is specific
+to the libaffy build system and not provided by SCons.  The flags are
+stored in a two-level Python dictionary within the top-level
+SConstruct file (`cflags_dict').
+
+If `cflags_bundle' is provided WITHOUT specifying `compiler', then the
+build system will do its best to guess which compiler tool is in use,
+and select from among the appropriate flag bundles.  This process is
+not 100% accurate but works well enough.
+
+Some flag bundle identifiers are specific to the compiler tool being
+used, and are not supported when using a different tool.  Other
+bundles have generic identifiers which are (in theory) supported by
+any given compiler tool.  The generic identifiers are as follows:
+
+Flag bundle name |  Purpose
+-----------------+-------------------------------------------------
+    optimize     |  Use basic optimizations
+    debug        |  Include debugging information, no optimizations
+    strict       |  Provide as many warnings as possible
+
+To see all defined combinations of `compiler' and `cflags_bundle',
+simply run `scons -h'.
+
