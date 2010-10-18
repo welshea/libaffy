@@ -1,0 +1,1253 @@
+\input texinfo     @c -*- texinfo -*-
+
+@c %**start of header
+@setfilename libaffy.info
+@set VERSION 1.3
+@settitle libaffy Reference Manual @value{VERSION}
+@c %**end of header
+
+@copying
+This reference manual documents the 'libaffy' library, version
+@value{VERSION}.
+
+Copyright @copyright{} 2006 H. Lee Moffitt Cancer Center & Research Institute
+
+@quotation
+
+@end quotation
+@end copying
+
+@titlepage
+@title libaffy Reference Manual
+@subtitle covering version @value{VERSION}
+@author Steven Eschrich
+@author Andrew Hoerter
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifinfo
+@insertcopying
+@end ifinfo
+
+@ifinfo
+@direntry
+* libaffy::                          Utility library for reading
+Affymetrix GeneChip file formats
+@end direntry
+@end ifinfo
+
+@ifnottex
+
+@node  Top
+@top libaffy Reference Manual
+
+@insertcopying
+
+@menu
+* Introduction::
+* Building and Using the Library::
+* Common Tasks:: 
+* Data Types::
+* Function Reference::
+* Concept Index::
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@chapter Introduction
+
+@file{libaffy} provides various helpful functions for dealing with
+files containing Affymetrix (R)
+GeneChip (R) microarray data.  It provides a simple
+interface for performing a variety of tasks:
+@itemize @bullet
+@item Loading data from @samp{CEL}, @samp{CDF}, and @samp{DAT} files,
+either individually or at the chip level (both V3 and V4 format)
+@item Representing this data in a convenient form
+@item Perform standard operations, including image rotation, RMA and MAS5.0
+@item Extensible codebase for developing Affymetrix chip-based applications.
+@end itemize
+
+The goal of this library is a reusable set of routines that could be
+integrated into different software. Since the code is written in C, 
+a reasonable effort has been made to ensure the code is
+memory-efficient and as minimal as possible. As more and more
+microarrays are generated and the individual chip size increases,
+these issues will become increasingly important. 
+
+The library can also be integrated into the bioconductor package
+(www.bioconductor.org) thereby providing the best of both options.
+
+@node Building and Using the Library
+@chapter Building and Using the Library
+
+With a few minor exceptions, the @file{libaffy} source code is ANSI C89
+compliant, although it will take advantage of certain C99 and GNU C
+capabilities when they are present in the environment.  If you wish to
+use the provided build system, you must install @acronym{GNU,
+@acronym{GNU}'s Not Unix} @command{make} (please make sure to use the
+latest version; some older versions have bugs which prevent proper
+interpretation of the makefiles).  The build system generally assumes a
+@acronym{POSIX}-like environment with basic utilities such as
+@command{rm}, @command{cp}, and so on.  When building under
+Microsoft(R) Windows(R), an emulation
+package such as Cygwin or MinGW will be necessary to provide these
+@acronym{POSIX} programs.  In the future build definition files for
+other environments may become available to eliminate this requirement.
+
+The end result of the build process will be a library file,
+@file{libaffy.a}, which can then be linked against application code.
+The default target of the top-level @file{Makefile} should produce the
+library.
+
+@node Common Tasks
+@chapter Common Tasks
+
+@menu
+* DAT Images::    Manipulating image data.
+* CEL Files::     Loading CEL files into data structures.
+* CDF File::      Loading and manipulating the CDF information.
+* Processing CEL Files::  Using RMA or MAS5.0 to extract expressions.
+@end menu
+
+@node DAT Images
+@section DAT Images
+The Affymetrix DAT image file is a simple structure consisting of a
+512-byte header followed by pixel data. A single function is used to
+load a named DAT file into the @code{AFFY_DATFILE} structure ( @xref{File Access Functions}, @code{affy_load_dat_file}). All
+pixels are currently loaded which can require significant amounts of
+memory for multiple chips. The in-memory structure is a series of
+fields that are listed within the header of the image, followed by a
+@code{AFFY_PIXREGION} object. The @code{AFFY_PIXREGION} structure is a
+convenient mechanism to store all or a subset of the image within a
+consistent structure.
+
+Once data is loaded, you can extract various subsection of the image
+by cell index (e.g. the probe location on the chip within the CEL
+file). An extremely important accessor function for this access is
+@code{affy_pixels_from_cell}, which is used to extract an
+@code{AFFY_PIXREGION} from the image based on CEL coordinates. Note,
+this is non-trivial since the image is generally slightly rotated and
+coordinates must be translated into the rotated space before
+determining the appropriate pixels. The function returns an
+@code{AFFY_PIXREGION} which can then be used to calculate a single
+summary (which is what Affymetrix does). 
+
+Given an @code{AFFY_PIXREGION}, you may want to write out the data in
+an alternate format. The image (or a subset of the image as defined by
+an @code{AFFY_PIXREGION}) can be written out as text or a TIF image (see
+@code{affy_write_pixel_region} for details).
+
+@node CEL Files
+@section CEL Files
+Typically Affymetrix microarray data is considered raw in the form of
+CEL files, despite the fact that the image is actually the most raw
+file format. Therefore, a central part of this library is the routine
+to read in a CEL file and the structure that stores a CEL file. Note:
+Affymetrix has developed a new version of their CEL file that is
+binary form (v4). In @code{libaffy}, the appropriate version is
+automatically detected and the appropriate code is called.
+
+The central function to use in loading a CEL file is
+@code{affy_load_cel_file}, which returns an @code{AFFY_CELFILE}
+structure. This structure holds raw data (as a matrix) and does not do
+any translation of the coordinates to probes. In addition, it stores
+the cell locations marked as outliers or masked within the CEL
+file. These are bit strings, therefore there are accessor functions
+(@code{iscontrol} and @code{ismasked}) to probe these values without
+knowing how to manipulate the bit strings.
+
+@node CDF File
+@section CDF File
+Since the CEL file only consists of matrix of values (intensity,
+standard deviation and number of pixels), the CEL file is not useful
+without the corresponding CDF file. In order to load a CDF file, you
+use the @code{affy_load_cdf_file} routine. This function requires a
+chip type string, as defined by the basename of the CDF file (or
+equivalently the chip name within the CEL file) and a directory to
+search for the file in. The load routine will also look in the current
+directory for the file before giving up. Note that binary CDF file
+support is also automatically detected and used.
+
+The chip type may be inconvenient to always specify within an
+application, therefore a utility function
+(@code{affy_get_cdf_name_from_cel}) can be used to extract the
+appropriate chip type from within a CEL file (for instance, the first
+CEL file in a list accepted from the user).
+
+The CDF structure is the most complex, as is understandable given it's
+importance to processing the microarray data. The structure contains
+@code{AFFY_PROBE} structures that combine to form @code{AFFY_PROBESET}
+structures. Both the probe and probeset information is stored, so that
+access can occur in whichever mode is most appropriate. Specifically,
+@code{AFFY_PROBE} structures are accessible via (X,Y) coordinates or
+as a linear array of probes. A linear array of probesets can also be
+accessed (which in turn point to probes). Finally, a matrix of cell
+type descriptors are included so that normal, undefined, control and
+QC cells can be identified easily.
+
+The rma and mas5 code consists of many good examples of the use of the
+CDF structures.
+
+@node Processing CEL Files
+@section Processing CEL Files
+Generally of most interest when loading a CEL file is converting the
+invidual probe values to actual probeset expressions. The
+@code{libaffy} contains code for both the MAS5.0 and RMA
+algorithms. The details of computing MAS5.0 and RMA are not described
+here, but many good descriptions do exist.
+
+The entry point for both MAS 5.0 and RMA consists of a single routine
+that is provided with an array of filenames and a flag structure. The
+filenames are assumed to be CEL files of the same type that are opened
+sequentially and processed. A meta-structure (@code{AFFY_CHIPSET}) is
+returned that represents the in-memory image of probeset expression and
+the corresponding CDF file. CEL file data is freed as chips are
+processed so memory usage is kept to a minimum. The flag structure is
+used to control the various parameters of the algorithm and are
+documented below and within the header files.
+
+There is nothing overly complex about the @code{rma} or @code{mas5}
+functions. These functions merely call the various routines that
+actual implement the algorithms. Therefore a good place to experiment
+is within this function, for instance by removing background
+correction as a processing step.
+
+@node Data Types
+@chapter Data Types
+
+@menu
+* Constants::   Constant values used within libaffy.
+* Base Types::  Base types used to maintain compatibility across
+platforms.
+* Data Structures::     Structures used for holding chip data.
+* Flag Structures::     Structures that modify algorithm settings.
+@end menu
+
+@node Constants
+@section Constants
+There are several constants defined within @code{libaffy}.
+@itemize
+@item @code{AFFY_DAT_FILEMAGIC} --- Magic number for DAT files.
+@item @code{AFFY_CDF_BINARYFILEMAGIC} --- Magic number for new CDF format.
+@item @code{AFFY_CEL_BINARYFILE_MAGIC} --- Magic number for new CEL format.
+@end itemize
+
+There are also location types, which are used in a CDF file as the
+cell type:
+@itemize
+@item @code{AFFY_UNDEFINED_LOCATION} --- Location is not specified within
+CDF.
+@item @code{AFFY_QC_LOCATION} --- Location designated QC (quality control)
+by CDF.
+@item @code{AFFY_NORMAL_LOCATION} --- Normal intensity location in CDF.
+@end itemize
+
+@node Base Types
+@section Base Types
+The @code{libaffy} library is generally platform-independent, despite
+the fact that the Affymetrix data files are very
+platform-specific. Therefore several different base types are defined
+that have known size on each platform regardless of potential
+differences in @code{sizeof(int)} for example.
+
+@itemize 
+@item @code{affy_uint8} is an unsigned byte.
+@item @code{affy_int16} is a signed 16-bit integer.
+@item @code{affy_uint16} is an unsigned 16-bit integer.
+@item @code{affy_int32} is a signed 32-bit integer.
+@item @code{affy_uint32} is an unsigned 32-bit integer.
+@end itemize
+
+@node Data Structures
+@section Data Structures
+
+@menu
+* AFFY_PIXREGION::      Pixel region from DAT file.
+* AFFY_POINT::          Structure for (x,y) coordinates.
+* AFFY_CELL::           Description of a single cell, from CEL file or
+DAT.
+* AFFY_PROBE::          Description of coordinates for a perfect match
+and mismatch probe.
+* AFFY_PROBESET::       Collection of probes with a single name.
+* AFFY_CDFFILE::        Structure for all info in a CDF file.
+* AFFY_CELFILE::        Structure for all info in a CEL file.
+* AFFY_DATFILE::        Structure for all info in a DAT file.
+* AFFY_CHIP::           Structure to hold collection of raw data and
+expressions.
+* AFFY_CHIPSET::        A collection of multiple chips of the same type.
+@end menu
+
+@node AFFY_PIXREGION
+@subsection AFFY_PIXREGION
+A region of pixels with the dimensions. Allows for efficient
+subsetting by allocating minimal data to point at a particular spot of
+a larger image.
+
+@verbatim
+
+  affy_uint16 numrows;
+  affy_uint16 numcols;
+  unsigned int **data;          /* Must hold at least 16 bits; C89 says so. */
+
+@end verbatim
+
+@node AFFY_POINT
+@subsection AFFY_POINT
+A simple structure to hold @code{(x,y)} coordinates together.
+@verbatim
+  affy_int16 x;
+  affy_int16 y;
+@end verbatim
+
+@node AFFY_CELL
+@subsection AFFY_CELL
+A cell is a location defined by the @code{CEL} file. The cell consists
+of a summary value, the standard deviation in the measurement and the
+number of pixels involved in the calculatation (all from the
+@code{CEL} file). Can also indicate a number of pixels from the
+@code{DAT} file if the @code{DAT} file is loaded.
+
+@verbatim
+  double value;                 /* Intensity (mean pixel intensity).     */
+  double stddev;                /* Std. deviation of pixel intensity.    */
+  int numpixels;                /* Number of pixels composing this cell. */
+  AFFY_PIXREGION *pixels;       /* The actual pixels making up the cell. */
+@end verbatim
+
+@node AFFY_PROBE
+@subsection AFFY_PROBE
+A probe is the basic unit of meta-information, consisting of both a
+perfect match point and a mismatch point (x,y coordinates). It also
+contains a pointer back to the probeset it belongs to.
+@verbatim
+  int index;                    /* Unique id for probe                  */
+  AFFY_POINT mm;                /* Location of Mismatch value           */
+  AFFY_POINT pm;                /* Location of Perfect match value      */
+  struct affy_probeset_s *ps;   /* Pointer back to parent probe set     */
+@end verbatim
+
+@node AFFY_PROBESET
+@subsection AFFY_PROBESET
+The probeset consists of a set of individual probes. Eventually the
+probeset is summarized to a single value elsewhere, as a combination
+of multiple PM and MM probes.
+@verbatim
+  int index;                    /* Unique id for probe set                */
+  char *name;                   /* A text description of probe set        */
+  int numprobes;                /* Total number of probes                 */
+  AFFY_PROBE *probe;            /* The probes themselves                  */
+@end verbatim
+
+@node AFFY_CDFFILE
+@subsection AFFY_CDFFILE
+The CDF file holds all information about how probes are put together
+to make probesets, as well as what every cell location is. This
+information is represented in memory as a bunch of connections to
+other structures.
+
+Note that in this structure, the information is represented several
+different ways. First, a matrix of @code{cell_type} defines for each
+cell location what type of cell it is (normal, control, QC). Next,
+probes can be extracted by @code{(x,y)} coordinates directly. Or the
+probes can be accessed linearly (via @code{probe}) to iterate through
+all probes. Finally, all probesets can be iterated through --- which
+ultimately links back to individual probes. These different access
+methods makes it convenient to do many different types of processing
+with the same structure.
+
+@verbatim
+  char *array_type;							/* Name of file/chip type */
+  int numrows;
+  int numcols;
+  int numprobes;                /* Count of total probes                   */
+  int numprobesets;             /* Number of probe sets                    */
+  int numqcunits;               /* Num quality control units               */
+
+  affy_uint8 **cell_type;       /* What kind of cell (normal, qc, control) */
+  AFFY_PROBE ***xy_ref;         /* row,col map to individual probe */
+  AFFY_PROBESET *probeset;      /* An array of probe sets, made of probes  */
+  AFFY_PROBE **probe;         	/* A linear array of probes
+  */
+@end verbatim
+
+@node AFFY_CELFILE
+@subsection AFFY_CELFILE
+The CEL file contains all of the actual intensity information for a
+single microarray. These intensities are simply listed indexed by
+their coordinates on the microarray. Therefore, this structure is
+relatively simple.
+
+One noteworthy exception is the @code{mask} and @code{outlier}
+components. These are both bit strings that indicate for an
+@code{(x,y)} coordinate whether or not the cell location was marked as
+an outlier or masked. There are convenience functions
+@code{affy_iscontrol()}, @code{affy_isoutlier()} and
+@code{affy_ismasked()} that allow you to probe these values without
+knowing how they are implemented.
+@verbatim
+  char *filename;
+  int numrows;
+  int numcols;
+  int nummasks;
+  int numoutliers;
+  AFFY_CELL **data;
+  affy_uint8 **mask;
+  affy_uint8 **outlier;
+@end verbatim
+
+@node AFFY_DATFILE
+@subsection AFFY_DATFILE
+The DAT file is the original image of the microarray chip. The header
+contains a variety of fields that are not generally useful but
+captured in memory nonetheless. The geometry of the image and the
+pixels themselves are conveniently represented within the
+@code{pixels} variable, which is an @code{AFFY_PIXREGION} and is thus
+self-contained. 
+
+The grid corners are noted within the DAT image and are important for
+calculating the rotation of the image. This rotation can be calculated
+by using the @code{affy_pixels_from_cell()} or
+@code{affy_cell_to_pixel()} routines to translate between cell
+coordinates and actual pixels without having to know any further
+details of the algorithm.
+
+@verbatim
+  AFFY_PIXREGION pixels;
+  affy_uint32 numpixels;
+  AFFY_POINT grid_ul;
+  AFFY_POINT grid_ur;
+  AFFY_POINT grid_ll;
+  AFFY_POINT grid_lr;
+
+  char *experiment_name;
+  affy_uint16 scanspeed;
+  affy_float32 temperature;
+  affy_float32 laser_power;
+  char timestamp[19];           /* field width 18, plus NUL */
+  affy_uint32 numsamples_dc_offset;
+  affy_uint16 cellmargin;
+  char *scannerid;
+  char *probe_array_type;
+  affy_float64 meanpixel;
+  affy_float64 std_dev_pixel;
+  affy_float64 avg_dc_offset;
+  affy_float64 std_dev_dc_offset;
+  affy_uint16 pixel_width;
+  affy_uint16 pixel_height;
+  affy_uint32 minpixel;
+  affy_uint32 maxpixel;
+
+@end verbatim
+
+@node AFFY_CHIP
+@subsection AFFY_CHIP
+A higher abstraction of a microarray experiment is the chip. Here, we
+store pointers to the various raw data sources
+(@code{CDF},@code{CEL},@code{DAT}) as well as the final result --- an
+array of probeset expression values.
+
+@verbatim
+  char *filename;               /* Filename of chip                   */
+  AFFY_CDFFILE *cdf;            /* The chip description file          */
+  AFFY_CELFILE *cel;            /* For the CEL file information       */
+  AFFY_DATFILE *dat;            /* Underlying pixel data (if present) */
+
+  /* The true information - the probe sets */
+  int numprobesets;
+  double *probe_set;
+
+  /* A convenience ptr: not globally used (RMA) */
+  double *pm;
+@end verbatim
+
+@node AFFY_CHIPSET
+@subsection AFFY_CHIPSET
+A chipset holds multiple chips of the same type. There is an array of
+chips and a pointer to a CDF that describes all of the chips.
+
+@verbatim
+ /* Some common parameters needed, from the CDF file. */
+  int numchips;
+  int numrows;
+  int numcols;
+
+  /* Each CHIPSET has a single description file (CDF) */
+  AFFY_CDFFILE *cdf;
+
+  /* 
+   * These are the chips themselves. Note they are arrays of ptrs, 
+   * so things can be copied more easily
+   */
+  AFFY_CHIP **chip;
+@end verbatim
+
+
+
+
+
+@node Flag Structures
+@section Flag Structures
+
+@menu
+* MAS5.0 Flags::
+* RMA Flags::
+@end menu
+
+@node MAS5.0 Flags
+@subsection MAS5.0 Flags
+
+@code{MAS5_FLAGS} is defined as follows (can be seen in @file{affy_mas5.h}).
+@verbatim
+
+/** 
+ * Structure to hold all relevant information
+ * about running an instance of MAS5.0. The
+ * defaults for these fields are in parenthesis, but
+ * the ultimate authority for these values is defined 
+ * within the file mas5/mas5_set_defaults.c.
+ */
+
+  /** (.) Default location to look for CDF file */
+  char *cdf_directory;
+
+  /** (True) Run MAS5.0 background correction */
+  Boolean use_background_correction;
+
+  /** (False) Use a mean normalization of all probes prior to processing */
+  Boolean use_mean_normalization;
+  /** (500) Mean normalize all probes to target mean value */
+  double mean_normalization_target_mean;
+
+
+  /** (False) Use a quantile normalization of all probes prior to processing.
+   *          This option is mutually exclusive with use_mean_normalization.
+   */
+  Boolean use_quantile_normalization;
+
+  /** (True) Scale probesets to a constant value, determined as scale_target */
+  Boolean use_probeset_scaling;
+  /** (500) If probeset scaling is used, this should be the target trimmed mean */
+  double scale_target;
+  /** (0.02) Percentage below which to remove from trimmed mean */
+  double trimmed_mean_low;
+  /** (0.98) Percentage above which to remove from trimmed mean */
+  double trimmed_mean_high;
+  
+  /** (false) Use Bioconductor compatability mode */
+  Boolean bioconductor_compatability;
+
+  /** (16) The number of rectangular zones on the chip */
+  int K; 
+  /** (100) MAS5.0 smooth parameter */
+  int smooth;
+  /** (0.5) MAS5.0 noiseFrac parameter */
+  double NoiseFrac;
+  /** (2.0e-20) MAS5.0 delta parameter */
+  double delta;
+  /** (0.03) MAS5.0 Contrast tau parameter */
+  double contrast_tau;
+  /** (10) MAS5.0 Scale tau parameter */
+  double scale_tau;
+
+@end verbatim
+
+@node RMA Flags
+@subsection RMA Flags
+@code{RMA_FLAGS} is defined as follows (can be seen in @file{affy_rma.h}).
+@verbatim
+/** 
+ * Structure to hold all relevant information
+ * about running an instance of RMA. The defaults 
+ * for these fields are in parenthesis, but the
+ * ultimate authority for these values is defined
+ * within the file rma/rma_set_defaults.c.
+ */
+typedef struct rma_flag_struct
+{
+  /** (.) Default location to look for CDF file */
+  char *cdf_directory;
+
+  /** (True) Run background correction */
+  Boolean use_background_correction;
+
+  /** (True) Run normalization step */
+  Boolean use_normalization;
+
+  /** (True) Use AFFX (control) probes when normalizing */
+  Boolean normalize_affx_probes;
+
+  /** (False) Use mean normalization instead of quantile normalization */
+  Boolean use_mean_normalization;
+
+  /** (500) If using mean normalization, set mean equal to target */
+  double mean_normalization_target_value;
+
+  /** (False) Dump probe affinities to a file */
+  Boolean dump_probe_affinities;
+
+  /** ("affinities.txt") Optional affinity filename */
+  char *affinities_filename;
+
+
+} RMA_FLAGS;
+@end verbatim
+
+@node Function Reference
+@chapter Function Reference
+
+@menu
+* File Access Functions::            Functions which load data from files.
+* Statistical Functions::            Functions providing statistical
+transformations.
+* Utility Functions::                Miscellaneous helper functions.
+
+@end menu
+
+@node File Access Functions
+@section File Access Functions
+
+@deffn {File Access} AFFY_CDFFILE *affy_load_cdf_file (char @var{*chip_type}, char @var{*dir})
+
+Given a chip type and directory (generally, the chip type corresponds
+to a name, while the directory is a platform-specific directory name),
+attempt to load the specified @samp{CDF} file into memory. The version
+of CDF file is automatically detected.
+
+If the load is successful, a new @code{AFFY_CDFFILE} structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+
+It is the caller's responsibility to free the returned structure using
+@code{affy_free_cdf_file()}.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+@end deffn
+
+@deffn {File Access} void affy_free_cdf_file (AFFY_CDFFILE @var{*cdf})
+
+Given a valid @code{AFFY_CDFFILE} structure, the associated storage is
+freed.
+
+It is an error to access the structure pointed to by @code{cdf}, or any
+of its members, after calling this function.
+
+@end deffn
+
+
+@deffn {File Access} AFFY_CELFILE *affy_load_cel_file (char @var{*filename})
+
+Given a platform-dependent filename attempt to load the specified
+@samp{CEL} file into memory.
+
+If the load is successful, a new @code{AFFY_CELFILE} structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+
+It is the caller's responsibility to free the returned structure using
+@code{affy_free_cel_file()}.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+
+@end deffn
+
+@deffn {File Access} void affy_free_cel_file (AFFY_CELFILE @var{*cf})
+
+Given a valid @code{AFFY_CELFILE} structure, the associated storage is
+freed.
+
+It is an error to access the structure pointed to by @code{cf}, or any
+of its members, after calling this function.
+@end deffn
+
+
+@deffn {File Access} AFFY_DATFILE *affy_load_dat_file (char @var{*filename})
+
+Given a platform-specific filename attempt to load the specified
+@samp{DAT} file into memory. All header fields and all pixel
+intensities are loaded in memory.
+
+If the load is successful, a new @code{AFFY_DATFILE} structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+
+It is the caller's responsibility to free the returned structure using
+@code{affy_free_dat_file()}.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+
+@end deffn
+
+@deffn {File Access} void affy_free_dat_file (AFFY_DATFILE @var{*df})
+
+Given a valid @code{AFFY_DATFILE} structure, the associated storage is
+freed.
+
+It is an error to access the structure pointed to by @code{df}, or any
+of its members, after calling this function.
+
+@end deffn
+
+
+
+
+@deffn {File Access} AFFY_CHIPSET *affy_load_data (char @var{*dir}, char @var{**files})
+
+The data files comprising one or more chips listed in directory
+@code{dir} and specified by @code{files} are loaded.  Either of
+@code{dir} or @code{files} can be set to @code{NULL} (but not both).
+
+The @samp{CEL} files named by @code{files} are opened, as is the
+corresponding @samp{CDF} file. The resulting @code{AFFY_CHIPSET} is
+returned as a dynamically allocated object.
+
+It is the caller's responsibility to free the returned structure using
+@code{affy_free_chipset()}.
+
+@end deffn
+
+@deffn {File Access} void affy_free_chipset (AFFY_CHIPSET @var{*cs})
+
+Given a valid @code{AFFY_CHIPSET} structure, the associated storage is
+freed.
+
+It is an error to access the structure pointed to by @code{cs}, or any
+of its members, after calling this function.
+
+@end deffn
+
+@deffn {File Access} void affy_free_chip (AFFY_CHIP @var{*ch})
+
+Given a valid @code{AFFY_CHIP} structure, the associated storage is
+freed.
+
+It is an error to access the structure pointed to by @code{ch}, or any
+of its members, after calling this function.
+
+@end deffn
+
+@deffn {File Access} AFFY_CHIP *affy_load_chip (char @var{*filename})
+
+
+Initialize a @code{AFFY_CHIP} structure with the CEL data assumed to
+be in @code{filename}. No other data is loaded. A @code{NULL} pointer
+is returned on error.
+
+@end deffn
+
+
+
+
+
+@deffn {File Access} char **affy_list_files (char @var{*directory}, char @var{*extension})
+
+Return a list of files within @code{directory} with the file extension
+@code{extension}. The return value is an array of filenames with a
+@code{NULL} as the last element (@code{argv} style). An empty list
+returns an array with one element, a @code{NULL}.
+
+@end deffn
+
+
+@deffn {File Access} char *affy_get_next_line (FILE @var{*fp})
+
+Read a single line of text from the open filestream @code{fp}, trim
+any whitespace from both ends, and return the result.  @code{NULL} is
+returned on error or in the case of an empty string.
+
+The resulting pointer refers to static storage and should not be used
+across invocations of @code{affy_get_next_line()}.
+
+@end deffn
+
+
+@deffn {File Access} void affy_unget_next_line (FILE @var{*fp})
+
+Causes the next invocation of @code{affy_get_next_line()} to return
+the current contents of the internal line buffer without reading
+another line from filestream @code{fp}.
+
+@end deffn
+
+
+@deffn {File Access} void affy_reset_next_line (FILE @var{*fp})
+
+This function has the opposite effect from
+@code{affy_unget_next_line()}; the next invocation of
+@code{affy_get_next_line()} will return the next line from filestream
+@code{fp} rather than the current contents of the internal line
+buffer.
+
+@end deffn
+
+
+@deffn {File Access} void affy_skip_to_next_header (FILE @var{*fp})
+
+Lines will be read from filestream @code{fp} until the first
+non-whitespace character of a line is a left bracket ('@samp{[}').
+Any such line encountered will be the next line returned by
+@code{affy_get_next_line()}.
+
+@end deffn
+
+
+@deffn {File Access} int affy_read8 (FILE @var{*input}, void @var{*buf})
+
+Given an open input filestream @code{input} and a valid storage
+location pointed to by @code{buf}, one byte will be read and stored in
+@code{buf}.
+
+On success, @samp{0} is returned.  On failure, @samp{-1} is returned
+and the state of the target buffer is undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+
+@end deffn
+
+@deffn {File Access} int affy_read16 (FILE @var{*input}, void @var{*buf})
+
+Given an open input filestream @code{input} and a valid storage
+location pointed to by @code{buf}, two bytes will be read and stored in
+@code{buf}.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+
+On success, @samp{0} is returned.  On failure, @samp{-1} is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+
+@end deffn
+
+@deffn {File Access} int affy_read32 (FILE @var{*input}, void @var{*buf})
+
+Given an open input filestream @code{input} and a valid storage
+location pointed to by @code{buf}, four bytes will be read and stored in
+@code{buf}.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+
+On success, @samp{0} is returned.  On failure, @samp{-1} is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+
+@end deffn
+
+
+@deffn {File Access} int affy_read64 (FILE @var{*input}, void @var{*buf})
+
+Given an open input filestream @code{input} and a valid storage
+location pointed to by @code{buf}, eight bytes will be read and stored in
+@code{buf}.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+
+On success, @samp{0} is returned.  On failure, @samp{-1} is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+
+@end deffn
+
+@deffn {File Access} int affy_readchars (FILE @var{*input}, char @var{*buf}, size_t @var{numbytes})
+
+Given an open input filestream @code{input}, and a valid storage
+location pointed to by @code{buf} and of size @code{numbytes}, 
+at most @code{numbytes}-1 bytes will be read and stored in
+@code{buf}.  A @samp{NUL} byte is then appended to the result.
+
+This is primarily a convenience function for reading character data
+into C-style strings; it is similar to @code{fgets()} except that
+newline characters have no special significance, only encountering an
+@samp{EOF} or I/O error will cause a short read.
+
+On success, @samp{0} is returned.  On failure, @samp{-1} is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+
+@end deffn
+
+@deffn {File Access} int affy_readint(FILE @var{*input})
+      
+Given an open input filestream @code{input}, read what Affymetrix
+defines as an int (a 32-bit  integer) and return as an int
+type. This is an unsafe function that will silently return when errors
+occur. 
+
+@end deffn
+
+@deffn {File Access} int affy_readushort(FILE @var{*input})
+      
+Given an open input filestream @code{input}, read what Affymetrix
+defines as a short (a 16-bit integer) and return as an int type. This
+is an unsafe function that will silently return when errors occur.
+
+@end deffn
+
+@deffn {File Access} int affy_readshort(FILE @var{*input})
+      
+Given an open input filestream @code{input}, read what Affymetrix
+defines as a short (a 16-bit integer) and return as an int type. This
+is an unsafe function that will silently return when errors occur.
+
+@end deffn
+
+@deffn {File Access} float affy_readfloat(FILE @var{*input})
+      
+Given an open input filestream @code{input}, read what Affymetrix
+defines as a float (a 32-bit floating point number) and return as a
+float type. This is an unsafe function that will silently return when
+errors occur.
+
+@end deffn
+
+@node Statistical Functions
+@section Statistical Functions
+
+@deffn Statistical void affy_mean_normalization (AFFY_CHIPSET @var{*d}, double @var{target_mean})
+
+Normalize an @code{AFFY_CHIPSET} containing one or more chips such
+that the mean intensity the chip (both perfect-match and mis-match
+probes) is equal across chips. The parameter @code{target_mean} is
+used as the mean intensity for all chips. Note this is not a trimmed
+mean and is performed on raw PM/MM values not expressions.
+
+@end deffn
+
+@deffn Statistical double affy_median_save (double @var{*x}, int @var{length})
+
+Calculate the median of @code{x} without disturbing the original
+ordering of @code{x}. The @code{length} of @code{x} must be specified.
+
+@end deffn
+
+
+@deffn Statistical double affy_median (double @var{*x}, int @var{length})
+
+Calculate the median of @code{x} but does not preserve the ordering of
+@code{x}. This saves allocating additional storage but allows a
+re-ordering of the original list.
+
+Side effect: The order of @code{x} will be changed.
+
+@end deffn
+
+
+@deffn Statistical void affy_get_row_median (double @var{**z}, double @var{*rdelta}, int @var{rows}, int @var{columns})
+
+Within the median polish step of RMA, calculate the median of each row
+of matrix @var{x}, return median values in @code{rdelta} which must be
+allocated by the caller. The dimensions of the matrix are provided as
+@code{rows} and @code{columns}.
+@end deffn
+
+
+@deffn Statistical void affy_get_column_median (double @var{**z}, double @var{*cdelta}, int @var{rows}, int @var{columns})
+
+Within the median polish step of RMA, calculate the median of each
+column in matrix @code{z}, returning the median values in
+@code{cdelta} which must be allocated by the caller. The dimensions
+of the matrix are provided as @code{rows} and @code{columns}.
+
+@end deffn
+
+
+@deffn Statistical int affy_median_sort (const @var{void}, *p1 @var{const}, void @var{*p2})
+
+Helper function for qsort that sorts based on pointers to double
+values, used for median calculations.
+
+@end deffn
+
+
+@deffn Statistical int affy_qnorm_compare (const @var{void}, *p1 @var{const}, void @var{*p2})
+
+Helper function for qsort that sorts based on pointers to pointers of
+double values, used for quantile normalization.
+
+@end deffn
+
+
+@deffn Statistical void affy_rank_order (double @var{*rank}, double @var{**x}, int @var{n})
+Gets ranks in a process identical to that of the R statistical
+package. It assumes that @code{x} of length @code{n} is sorted, and
+calculates the ranks taking into account ties. Results are stored in
+@code{rank}. 
+
+@end deffn
+
+
+@deffn Statistical void affy_quantile_normalization (AFFY_CHIPSET @var{*d})
+
+This function differs from the RMA quantile normalization, in that the
+normalization is performed on all probes, not just the Perfect Match
+(PM) probes. Otherwise the process is identical.
+
+@end deffn
+
+
+@deffn Statistical void affy_pnorm_both (double @var{x}, double @var{*cum}, double @var{*ccum}, int @var{i_tail}, int @var{log_p})
+
+This is a function from the R statistics software, which is freely
+usable under the GNU license. It calculates the distribution function
+of the normal distribution. This is used as part of the background
+correction within RMA.
+
+@end deffn
+
+
+@deffn Statistical void rma_set_defaults (RMA_FLAGS @var{*f})
+
+This routine sets flag structure @code{f} values to the defaults
+determined by the maintainers of @code{libaffy}. 
+
+@end deffn
+
+
+@deffn Statistical RMA_FLAGS *rma_get_defaults ()
+
+Returns a dynamically allocated @code{RMA_FLAGS} structure with
+defaults filled in.
+
+@end deffn
+
+
+@deffn Statistical AFFY_CHIPSET *rma (char @var{**filelist}, RMA_FLAGS @var{*f})
+
+@end deffn
+
+
+@deffn Statistical void rma_background_correct (AFFY_CHIPSET @var{*c}, int @var{chipnum})
+
+This procedure substracts an intensity-dependent background value from
+all probes, for chip @code{chipnum} in the chipset @code{c}. Consult
+the RMA publications for the precise details of this algorithm.
+
+@end deffn
+
+
+@deffn Statistical void quantile_normalization_chip (AFFY_CHIPSET @var{*c}, int @var{chipnum}, double @var{*mean})
+
+Perform a quantile normalization on chip @code{chipnum} of the chipset
+@code{c}. The entire process cannot be performed for a single chip,
+however the individual chips can be sorted and quantile means can be
+calculated and updated in the array @code{mean}. The probe values are
+not adjusted within this function, only @code{mean} values are accumulated.
+
+@end deffn
+
+
+@deffn Statistical void quantile_normalization_chipset (AFFY_CHIPSET @var{*c}, double @var{*mean})
+
+Perform the final step of a quantile normalization across an entire
+chipset. The values in @code{mean} represent the mean values for each
+quantile of the Perfect Match array. Perfect Match probe values are
+replaced by the values in @code{mean} for each chip, after sorting to
+match quantiles with means.
+
+@end deffn
+
+
+@deffn Statistical void rma_signal (AFFY_CHIPSET @var{*c}, RMA_FLAGS @var{*f})
+
+Calculate the signal for a probeset, from a set of probes, for all
+chips in @code{c}. This is done by defining a model of probes for a
+probeset, and fitting the data to this model. The model-fitting is
+performed via a median polish. Flags that modify the default behavior
+of this algorithm can be passed via @code{f}.
+
+@end deffn
+
+
+@deffn Statistical void median_polish (double @var{**z}, int @var{numprobes}, int @var{numchips}, double @var{*results}, double @var{*affinities})
+
+Uses the median polish algorithm to fit a model consisting of
+co-efficients given in @code{z}, a @code{numprobes} by @code{numchips}
+matrix. The results are stored for return in @code{results} and the
+residuals are return in @code{affinities}. The @code{results} are the
+actual probeset signal and the @code{affinities} are representative of
+the estimated binding efficiency of each probe.
+
+@end deffn
+
+
+@deffn Statistical MAS5_FLAGS *mas5_get_defaults ()
+
+Returns a dynamically allocated @code{MAS5_FLAGS} structure with
+defaults filled in.
+
+@end deffn
+
+
+@deffn Statistical void mas5_set_defaults (MAS5_FLAGS @var{*f})
+
+
+This routine sets flag structure @code{f} values to the defaults
+determined by the maintainers of @code{libaffy}. 
+
+@end deffn
+
+
+@deffn Statistical AFFY_CHIPSET *mas5 (char @var{**filelist}, MAS5_FLAGS @var{*f})
+
+Performs the MAS 5.0 algorithm for calculating expression over a list
+of files given by @code{filelist}. Flags modifying the default
+behavior of MAS 5.0 can be given as @code{f} (or @code{NULL} for defaults).
+
+@end deffn
+
+
+@deffn Statistical int mas5_background_correction (AFFY_CHIPSET @var{*c}, MAS5_FLAGS @var{*f})
+
+Performs the Affymetrix MAS 5.0 background correction on the chips in
+@code{c}. Flags that may modify the algorithm are provided in
+@code{f}. This process involves calculating zones and subtracting
+weighted averages from different zones. Consult the Affymetrix
+documentation for the details of this algorithm.
+
+@end deffn
+
+
+@deffn Statistical int mas5_signal (AFFY_CHIPSET @var{*c}, MAS5_FLAGS @var{*f})
+
+Use the MAS 5.0 algorithm to calculate signal values, for the chipset
+@code{c}. Flags that may modify the algorithm are given in
+@code{f}. This process calculates Tukey's biweight on the difference
+from perfect match and ideal mismatch.
+
+@end deffn
+
+
+@deffn Statistical int mas5_scale (AFFY_CHIPSET @var{*c}, MAS5_FLAGS @var{*f})
+
+Performs the Affymetrix scaling function, which normalizes expression
+values such that the trimmed mean of each chip in @code{c} is set to a
+target value. This value is defined as @code{f->scale_target} with
+upper and lower bounds defined by @code{f->trimmed_mean_low} and
+@code{f->trimmed_mean_high}.
+
+@end deffn
+
+@node Utility Functions
+@section Utility Functions
+
+@deffn Utility char *affy_get_cdf_name (char @var{*buf})
+
+Given the @samp{DatHeader} portion of a CEL file in @code{buf}, the
+corresponding CDF filename is returned.
+
+New storage is allocated for the resultant string, which must be freed
+by the caller.  @code{NULL} is returned in the case of insufficient
+memory.
+
+@end deffn
+
+
+@deffn Utility char *affy_get_cdf_name_from_cel (char @var{*filename})
+
+Given a CEL filename @code{filename}, open the CEL file, determine the
+corresponding CDF filename, and return the resultant string.
+
+The library will end execution with a fatal exception on I/O error.
+
+New storage is allocated on success, which must be freed by the
+caller.  @code{NULL} is returned in the case of insufficient memory.
+
+@end deffn
+
+
+@deffn Utility double **affy_matrix_from_cel (AFFY_CELFILE @var{*cf})
+
+This function is provided as a convienence to quickly extract the cell
+intensity values from a CEL file without dealing with individual cell
+structures.  Given an initialized CEL file structure @code{cf}, the
+cell intensity values are copied into a two-dimensional array and the
+resultant pointer is returned.  The array is guaranteed to be
+contiguous in memory.
+
+If the array could not be allocated due to insufficient memory,
+@code{NULL} is returned.
+
+@end deffn
+
+@deffn Utility void affy_dump_dat_hdr (AFFY_DATFILE @var{*df})
+
+Given an initialized DAT file structure @code{df}, a human-readable
+summary of the file header information is written to standard output.
+Fields are written one per line.  It should be noted that not all
+fields necessarily contain valid data in every DAT file, but they will
+be printed regardless.
+
+@end deffn
+
+@deffn Utility AFFY_PIXREGION *affy_pixels_from_cell(AFFY_CHIP @var{*cp}, int @var{x}, int @var{y})
+
+Given a AFFY_CHIP structure @code{cp} containing at least valid CDF and
+DAT structures, return the pixels associated with cell coordinate
+(@code{x},@code{y}). Rotation of the grid is considered, as defined by
+corner coordinates within the DAT file.
+
+If the coordinates are not valid, a @code{NULL} pointer is returned.
+
+@end deffn
+
+@deffn Utility AFFY_POINT affy_cell_to_pixel(AFFY_CHIP @var{*cp}, int @var{x}, int @var{y})
+
+
+Given a AFFY_CHIP structure @code{cp} containing at least valid CDF and
+DAT structures, return the image coordinates corresponding to upper
+left corner of the cell. This takes into account rotation of the grid.
+
+
+@end deffn
+
+@deffn Utility void affy_write_expressions (AFFY_CHIPSET @var{*c}, char @var{*filename})
+
+Opens the platform-dependent filename given by @code{filename} and
+writes out the gene expression data from each chip in the chipset
+@code{c}.
+
+The library will halt execution with a fatal exception on error.
+
+@end deffn
+
+@deffn Utility void affy_write_pixel_region(AFFY_PIXREGION @var{*pr}, char @var{*filename})
+
+Writes the AFFY_PIXREGION @code{pr} to a platform-dependent file given
+by @code{filename}. If TIFF image support is compiled into libaffy,
+the output will be a tiff image, otherwise a tab-delimited text file
+containing the intensities in the region.
+
+@end deffn
+
+
+@deffn Utility Boolean affy_ismasked (AFFY_CHIP @var{*chip}, int @var{x}, int @var{y})
+
+Given an initialized chip structure @code{chip} and cell coordinates
+@code{x} and @code{y}, test whether the cell is masked.
+
+@code{True} is returned if the cell is masked, @code{False} if not.
+
+@end deffn
+
+
+@deffn Utility Boolean affy_iscontrol (AFFY_CHIP @var{*chip}, int @var{x}, int @var{y})
+
+Given an initialized chip structure @code{chip} and cell coordinates
+@code{x} and @code{y}, test whether the cell is a control location.
+
+@code{True} is returned if the cell is a control location,
+@code{False} if the cell is a normal location.
+
+@end deffn
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@bye
