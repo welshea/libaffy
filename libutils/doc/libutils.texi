@@ -1,0 +1,454 @@
+\input texinfo     @c -*- texinfo -*-
+
+@c %**start of header
+@setfilename libutils.info
+@set VERSION 2.0
+@settitle libutils Reference Manual @value{VERSION}
+@c %**end of header
+
+@copying
+This reference manual documents the 'utils' library, version
+@value{VERSION}.
+
+Copyright @copyright{} 2005 Steven A. Eschrich
+
+@quotation
+
+@end quotation
+@end copying
+
+@titlepage
+@title libutils Reference Manual
+@subtitle covering version @value{VERSION}
+@author Steven A. Eschrich and Andrew Hoerter
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifinfo
+@insertcopying
+@end ifinfo
+
+@ifinfo
+@direntry
+* libutils::                          C utility library 
+@end direntry
+@end ifinfo
+
+@ifnottex
+
+@node  Top
+@top libutils Reference Manual
+
+@insertcopying
+
+@menu
+* Introduction::
+* Building and Using the Library::
+* Logging::
+* Data Types::
+* Defines::
+* Function Reference::
+* Concept Index::
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@chapter Introduction
+
+@menu
+* Design Issues::
+@end menu
+
+There are many different C libraries encompassing the same type of
+``utility'' functions -- this library is yet another version. It has
+been a useful accumulation of scraps of useful code and it works
+(generally) under Solaris, Linux and Windows. Some ideas are borrowed
+from perl-isms and some from java. The library covers such areas as
+in-place macros for file opens with appropriate warnings; consistent
+logging output macros; and various text-processing options.  The
+software is released under the GNU General Public License.
+
+@file{libutils} was originally designed as a set of macros (heavily
+dependent on GNU gcc among other things) that could simply be included
+via a header file. Naturally the code has outgrown such flexibility
+therefore it is a full-fledged library of routines. It has in fact
+morphed into two distinct libraries, the general-purpose utilities and
+a logging library. 
+
+This library provides features including:
+@itemize @bullet
+@item Text processing features (e.g. chomp, split)
+@item Safe memory allocation/file opening utilities
+@item Simple double-type 2D matrix alloc/free routines
+@item Generic comparison functions for sorting arrays
+@item Endian utilities
+@item Bit string utilities
+@item Logging (e.g. die, warn) in both text mode and GUI mode.
+@end itemize
+
+@node Design Issues
+@section Design Issues
+There are several notable design issues worth pointing out. First,
+there is an overall design philosophy to much of the code. It is really
+supposed to be programmer's code more than anything. Therefore one of
+the fundamental tenets is 
+@quotation
+Avoid silent errors.
+@end quotation
+Unfortunately, this is often at odds with the general design of
+libraries - which are supposed to be robust and simply return error
+results. Therefore whenever there is a choice in the code between
+returning an error code (that could be ignored by a programmer) and
+simply aborting, the latter option is taken. Why? In systems based on
+this code, complexity increases. In particular, it has been used in
+cases in which multiple programs are chained together via
+scripting. This could lead to the potential difficulty of one segment
+of the chain failing without being detected. Worse than obvious
+malfunctions, the overall results could be misleading.
+
+A further point regarding the error handling mechanisms: if the code
+causes a crash there should be a clear indicator where it
+happened. Although it is possible to core dump and trace back the
+error from there, libutils takes the approach of aborting with an
+error message that includes the source file and line number. This
+assumes ready access to the source code, but it must be
+(re)-emphasized that this is a programmer's utility. Hence the utility
+of functions such as @code{die} and @code{warn} - mechanisms that
+allow a reasonable programmer to easily repair the code. 
+
+These design philosophies are evident in the ``safe'' wrappers for
+standard C functions (@code{fopen} and alloc routines). How many times
+have we all forgotten to check the return results of [m|s|re]alloc?
+Certainly I have. Just because it might occur doesn't mean that the
+extra code is worthwhile for the rare occasion. More to the point, in
+cases in which the code has aborted, there have been errors in the
+calling code, trying to allocate extremely large amounts of
+memory. Catching these bugs sooner rather than later is always
+helpful.
+
+@node Building and Using the Library
+@chapter Building and Using the Library
+
+With a few minor exceptions, the @file{libutils} source code is ANSI
+C89 compliant, although it will take advantage of certain C99 and GNU
+C capabilities when they are present in the environment.  If you wish
+to use the provided build system, you must install @acronym{GNU}
+@command{make} (please make sure to use the latest version; some older
+versions have bugs which prevent proper interpretation of the
+makefiles).  The build system generally assumes a @acronym{POSIX}-like
+environment with basic utilities such as @command{rm}, @command{cp},
+and so on.  When building under Microsoft Windows, an emulation
+package such as Cygwin or MinGW will be necessary to provide these
+@acronym{POSIX} programs.  In the future build definition files for
+other environments may become available to eliminate this requirement.
+
+The end result of the build process includes a library file,
+@file{libutils.a} which can then be linked against application
+code. The text logging library, @file{libtxtlog.a}, will also be built
+by default and should be used for the logging routines. The default
+target of the top-level @file{Makefile} should produce the
+@file{libutils.a} and @file{libtxtlog.a} libraries.
+
+The GUI-based logging library (@file{libwxlog.a}) consists of the same
+functions as @file{libtxtlog.a} with appropriate wxWidgets
+implementations. Therefore, only one of these two logging libraries
+should be linked against in application code. The intention is a
+drop-in replacement for text-logging facilities for use in a GUI
+without needing to modify the existing code.
+
+@node Logging
+@chapter Logging
+
+The logging facility within libutils deserves a description. Although
+originally intended as macros they have evolved somewhat. The purpose
+of logging functions (@var{die},@var{warn}, @var{info}, @var{debug})
+are syslog-type functions (for instance, what is available within
+java). One incredibly useful feature is the ability to include the
+source file and line number from which the logging was called. This
+was done via the pre-processor. 
+
+The logging functions are designed to work both in text mode (using
+@code{libtxtlog.a}) or wxWidgets mode (using @code{libwxlog.a}). In
+text mode, all logging is done to stderr. In wxWidgets mode the
+logging is a bit more involved, but essentially we hook up
+@var{status} to a status bar, @var{info} to a log window, and
+@var{die} to a dialog box. Also included is a progress bar, which is a
+simple bunch of periods in text mode, but a regular progress bar in
+wxWidgets mode.
+
+Hopefully the motivation for a pluggable logging library is
+obvious. Code is easier to write for a command line, but not everyone
+in the world is comfortable there. We wanted a simple way of porting
+command-line code to a GUI without requiring extensive changes to
+processing code. Therefore, we provide generic routines that
+(hopefully) do sensible things in either text or GUI mode. One
+codebase (typically process-intensive tasks that merely report status)
+can then serve both types of applications. Or at least that is the
+intention.
+
+One major difficulty that everyone trying to write these types of
+macros runs into is the issue of variadic macros across various
+preprocessors. The GNU package supports it, however this code was
+(re)-designed for compatability therefore we could not assume
+GNU. Therefore an extra set of parens are required around many of the
+argument lists.
+
+
+
+@node Data Types
+@chapter Data Types
+
+@table @code
+@item Boolean
+No utility library is complete without a boolean type. This is
+typedef'd as an @code{int} so that functions like @code{getopt} can
+use these directly.
+
+@item True, False
+An enumeration useful for readability
+
+@item BYTE
+A typedef of an unsigned char.
+@end table
+
+@node Defines
+@chapter Defines
+
+@table @code
+@item MAXBUF
+This is one define for ``large'' buffers such as filenames rather than
+continually hard coding values.
+
+@item SYS_BIG_ENDIAN
+The global variable @var{endian} identifies the platform as big or little
+endian.
+
+@item SYS_LITTLE_ENDIAN
+The global variable @var{endian} identifies the platform as big or little
+endian.
+@end table
+
+@node Function Reference
+@chapter Function Reference
+
+@menu
+* File Access Functions::            Functions which load data from files.
+* Memory Allocation Functions::      Functions that allocate memory
+and abort on failure.
+* Text Processing Functions::        Functions that make processing
+text easier.
+* Array Functions::             Functions for dealing with arrays.
+* Utility Functions::                Miscellaneous helper functions.
+* Bit String Functions::          Functions for handling bit arrays.
+* Logging Functions::             Functions for logging status or errors.
+@end menu
+
+@node File Access Functions
+@section File Access Functions
+@deffn {File Access} FILE *FOPEN(const char @var{*filename}, const char @var{*mode})
+Open @var{filename} with permissions @var{mode}. When
+@var{filename} cannot be opened or other I/O errors, the program will
+die with source file/line error.
+@end deffn
+
+@node Memory Allocation Functions
+@section Memory Allocation Functions
+
+@deffn {Memory Allocation} void *MALLOC(size_t @var{size})
+Allocate @var{size} bytes and return pointer. On failure to allocate
+storage, the routine will die with source file/line error.
+@end deffn
+
+@deffn {Memory Allocation} void *CALLOC(size_t @var{n}, size_t @var{size})
+Allocate @var{size}*@var{n} bytes, zero-filled, and return pointer. On
+failure to allocate storage, the routine will die with source
+file/line error.
+@end deffn
+
+@deffn {Memory Allocation} void *REALLOC(void @var{*ptr}, size_t @var{n})
+Reallocate @var{n} bytes to pointer @var{ptr}. On failure to
+allocate storage, the routine will die with source file/line error.
+@end deffn
+
+
+@node Text Processing Functions
+@section Text Processing Functions
+
+@deffn {Text Processing} int STREQ(char @var{*str1}, char @var{*str2})
+Performs a case-insensitive comparison of the two strings, returning
+True (1) if @var{str1} and @var{str2} are equal, and False (0) otherwise.
+@end deffn
+
+@deffn {Text Processing} void chomp(char @var{*str})
+Performs the perl chomp operation, removing the last character in @var{str}.
+@end deffn
+
+@deffn {Text Processing} int endsWith(char @var{*str},char @var{*sub})
+Returns True if @var{str} ends with the string @var{sub}, in a case
+insensitive comparison.
+@end deffn
+
+@deffn {Text Processing} char *ltrim(char @var{*str})
+Trim whitespace from the left portion of @var{str}.
+@end deffn
+
+@deffn {Text Processing} char *rtrim(char @var{*str},char @var{*end})
+Trim whitespace from the right portion of @var{str} as pointed to by end.
+@end deffn
+
+@deffn {Text Processing} char *trim(char @var{*str})
+Trim whitespace from both left and right ends of @var{str}.
+@end deffn
+
+@deffn {Text Processing} char **split(char @var{*str}, char @var{splitval})
+Split @var{str} into individual strings (char **) based on the
+character @var{splitval}. For example, @code{split("This=that",'=')} returns
+@samp{@{"This","that"@}}.
+@end deffn
+
+@deffn {Text Processing} char *strip_comments(char @var{*p},char @var{c})
+Remove comments (the character @var{c} and everything after) in the
+string @var{p}.
+@end deffn
+
+@node Array Functions
+@section Array Functions
+
+@deffn {Array} int dcompare(const void @var{*d1},const void @var{*d2})
+Double-type compare routine for quicksort.
+@end deffn
+
+@deffn {Array} int fcompare(const void @var{*f1},const void @var{*f2})
+Float-type compare routine for quicksort.
+@end deffn
+
+@deffn {Array} int icompare(const void @var{*i1},const void @var{*i2})
+Int-type compare routine for quicksort.
+@end deffn
+
+@deffn {Array} double **create_matrix(int @var{rows},int @var{cols})
+Create a double **matrix of size @var{rows} by @var{cols}. The matrix
+will actually be an array of pointers to double arrays (rather than a
+2D table).
+@end deffn
+
+@deffn {Array} void free_matrix(doube @var{**mat})
+Free space allocated to @var{mat} by a previous call to @var{create_matrix}.
+@end deffn
+
+@deffn {Array} void push(@var{array}, @var{element}, @var{arraycount})
+Push element onto @var{array} at position @var{arraycount},
+reallocating storage if necessary. As the name implies, it must be
+added to the end of the array (i.e. arraycount-1 must be the last
+valid entry in the array). For example, @code{push(intarray, 5, cntr++);}
+@end deffn
+
+@deffn {Array} val pop(@var{array}, @var{arraycount})
+Remove the last element of @var{array} (at position
+@var{arraycount}). For example, @code{int val=pop(intarray,cntr--)}
+@end deffn
+
+
+@node Utility Functions
+@section Utility Functions
+
+
+@deffn {Utility} val min(@var{x},@var{y})
+Safely return the minimum value of @var{x} and @var{y}, with no side
+effects. Implemented as a macro, so @var{x} and @var{y} can be any
+numeric type.
+@end deffn
+
+@deffn {Utility} val max(@var{x},@var{y})
+Safely return the maximum value of @var{x} and @var{y}, with no side
+effects. Implemented as a macro, so @var{x} and @var{y} can be any
+numeric type.
+@end deffn
+
+@deffn {Utility} int swap_int(unsigned int @var{val})
+Swap bytes of an integer around.
+@end deffn
+
+@deffn {Utility} short swap_short(unsigned short @var{val})
+Swap bytes of a short int around.
+@end deffn
+
+@node Bit String Functions
+@section Bit String Functions
+
+@deffn {Bits} int numbytes(int @var{b})
+Returns the number of bytes required to store @var{b} bits. Useful when
+trying to allocate the appropriate number of bytes dynamically.
+@end deffn
+
+@deffn {Bits} int bget(BYTE @var{*v}, int @var{n})
+Returns the value (0,1) of bit @var{n} in bit string @var{v}.
+@end deffn
+
+@deffn {Bits} void bset(BYTE @var{*v},int @var{n},int @var{val})
+Sets bit @var{n} of bit string @var{v} to the value of @var{val} which
+must be in (0,1).
+@end deffn
+
+@node Logging Functions
+@section Logging Functions
+
+Note the double parens around the arguments - this is a requirement
+thanks to variadic macros (or lack of them) in various C
+implementations. 
+
+@deffn {Logging} void debug((int @var{level},char @var{*str},...))
+If @var{level} is greater than external int variable
+@var{debug_level}, log @var{str} (printf style).
+@end deffn
+
+@deffn {Logging} void die((char @var{*str},...))
+Logs @var{str} (printf style) with line number and source
+file. Terminates the program. Think perl die.
+@end deffn
+
+@deffn {Logging} void info((char @var{*str}, ...))
+Log a informational message (printf style). In text mode, logs to stderr.
+@end deffn
+
+@deffn {Logging} void warn((char @var{*str},...))
+Logs a warning message (printf style) with line number and source file
+(useful for unusual conditions). In text mode, logs to stderr.
+@end deffn
+
+@deffn {Logging} void status((char @var{*str},...))
+Logs a status message (printf style). In text mode, logs to stderr.
+@end deffn
+
+@deffn {Logging} int pb_create(int @var{maxvalue}, char @var{*msg}, ...)
+Create a progress bar with @var{maxvalue} points, using the message
+@var{msg} (printf style). Returns progress bar handle.
+@end deffn
+
+@deffn {Logging} void pb_update(int @var{pb}, int @var{value}, char @var{*msg}, ...)
+Update the progress bar @var{pb} to @var{value}, and update message to
+@var{msg} (printf style).
+@end deffn
+
+@deffn {Logging} void pb_finish(int @var{pb})
+Finish the progress bar @var{pb} and dismiss (if GUI).
+@end deffn
+
+
+@deffn {Logging} void yield()
+Yield control of processing to a GUI, if used. This is a useful
+breakpoint mechanism such that the GUI can update and potentially
+cancel operation.
+@end deffn
+
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@bye
