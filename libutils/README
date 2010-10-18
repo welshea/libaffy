@@ -1,0 +1,8 @@
+March 15, 2005
+Steven Eschrich
+eschrich@csee.usf.edu
+
+This is the libutils library. It consists of various helpful utilities for C 
+programs. See the doc/ directory for details about the code. All code was written
+by me unless individually noted. It is released under the GNU General Public 
+License (see gpl.txt for details).
