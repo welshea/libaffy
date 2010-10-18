@@ -1,0 +1,243 @@
+<html lang="en">
+<head>
+<title>GENE User Manual 1.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GENE User Manual 1.3">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="top" href="#Top">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the manual for the GENE application, or Gene Expression and Normalization Engine, version 1.3.
+
+Copyright (C) 2006 Steven A. Eschrich-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">GENE User Manual 1.3</h1>
+   <div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="#Top">GENE User Manual</a>
+<li><a name="toc_Overview" href="#Overview">1 Overview</a>
+<li><a name="toc_Input-Files" href="#Input-Files">2 Input Files</a>
+<li><a name="toc_MAS-5_002e0" href="#MAS-5_002e0">3 MAS 5.0</a>
+<li><a name="toc_RMA" href="#RMA">4 RMA</a>
+<li><a name="toc_Options" href="#Options">5 Options</a>
+</li></ul>
+</div>
+
+
+
+<div class="node">
+<p><hr>
+<a name="Top"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Overview">Overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
+
+</div>
+
+<h2 class="unnumbered">GENE User Manual</h2>
+
+<p>This is the manual for the GENE application, or Gene Expression and Normalization Engine, version 1.3.
+
+   <p>Copyright &copy; 2006 Steven A. Eschrich
+
+<ul class="menu">
+<li><a accesskey="1" href="#Overview">Overview</a>:      A brief description of the application. 
+<li><a accesskey="2" href="#Input-Files">Input Files</a>:   How to select files for use in the application. 
+<li><a accesskey="3" href="#MAS-5_002e0">MAS 5.0</a>:  Processing CEL files using the MAS 5.0 algorithm. 
+<li><a accesskey="4" href="#RMA">RMA</a>:  Processing CEL files using the RMA algorithm. 
+<li><a accesskey="5" href="#Options">Options</a>:  Global options for the GENE application. 
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Overview"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Input-Files">Input Files</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">1 Overview</h2>
+
+<p>This manual describes the GENE application. GENE stands for Gene
+Expression and Normalization Engine, a program designed to calculate
+gene expressions from Affymetrix CEL files. It implements two of the
+more popular methods, MAS 5.0 and RMA, in a graphical interface for
+easy end-user access.
+
+   <p>GENE does not provide any microarray analysis, it merely computes the
+gene expression from raw Affymetrix CEL files. It does so easily and
+efficiently, such that many CEL files can be processed with modest
+resources.
+
+   <p>In order to use GENE you will need access to the CDF file from
+Affymetrix, which describes the design of the chip. With the CEL files
+and the corresponding CDF file, GENE will generate a single
+tab-delimited text file containing the normalized gene expression
+values. This file is suitable for loading into Microsoft Excel or
+Bioconductor (R) for further analysis.
+
+   <p>The GENE application is a graphical application with a simple tabbed
+window interface. There are three tabs: CEL Files, RMA, and
+MAS5.0. Each section is described individually in this manual. A Log
+Window, at the bottom of the application, is used for displaying
+important information throughout the execution of GENE.
+
+   <p><br>
+<img src="GENE_main.png" alt="GENE_main.png">
+
+<div class="node">
+<p><hr>
+<a name="Input-Files"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#MAS-5_002e0">MAS 5.0</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Overview">Overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">2 Input Files</h2>
+
+<p>The GENE application takes CEL files as input and produces expression
+summary values. In order to do this, the first step is to specify the
+CEL files to include. You can use the &ldquo;Add Files...&rdquo; button or the
+&ldquo;File&rdquo; menu, &ldquo;Add Cel Files&rdquo; to bring up the file selection
+dialog.
+
+   <p><br><img src="GENE_main.png" alt="GENE_main.png">
+
+   <p>From the &ldquo;Add Cel Files&rdquo; you can choose one or more CEL files to add
+to the GENE application. Once the files are selected, they will be
+listed along with the chip type in the &ldquo;CEL Files&rdquo; window (see
+figure below). You must use CEL files of the same chip type.
+
+   <p>NOTE: GENE accepts CEL/CDF files in both the old (text) format and the
+newer binary format. The file type is automatically identified when
+loading the data.
+
+   <p><br><img src="GENE_selected.png" alt="GENE_selected.png">
+
+   <p>In addition to selecting the CEL files, you must also indicate the CDF
+file, corresponding to your chip type. You may leave this blank if the
+correct CDF is in the same directory as the first CEL file in the
+list. Or you may set a global option (see Options section) indicating
+the directory to look for CDF files.
+
+<div class="node">
+<p><hr>
+<a name="MAS-5.0"></a>
+<a name="MAS-5_002e0"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#RMA">RMA</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Input-Files">Input Files</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">3 MAS 5.0</h2>
+
+<p>MAS 5.0 is the name of the Affymetrix algorithm used for producing
+gene expression signal (see <a href="http://www.affymetrix.com">Affymetrix WebSite</a>) for more details on the algorithm.
+
+   <p>The algorithm consists of background correction, calculation of the
+probe summary and scaling (typically termed probeset-level
+normalization). The options available within GENE include:
+
+     <ul>
+<li>Use background correction
+<li>Use Quantile Normalization
+Check this box to use quantile normalization on the entire chip (all
+CEL locations) prior to computing signal. 
+<li>Use Mean Normalization
+Check this box to use a <em>probe-level</em> normalization to a
+common mean value. 
+<li>Scale Probeset Values
+This is a common method of <em>probeset-level</em> normalization, involving
+scaling the trimmed-mean of each chip to a constant value
+(default=500). 
+<li>Use Bioconductor Compatability
+Several small changes that make GENE produce results identical to
+bioconductor. This includes ignoring masked probes and other changes. 
+</ul>
+
+   <p>Finally, you can select the name of the output file to write
+expression results. This file is a tab-delimited output file with
+columns labeled with CEL file names (without the .CEL extension) and
+rows corresponding to probesets. The default is <code>exprs-mas.txt</code>
+in the working directory.
+
+   <p><br><img src="GENE_MAS5.png" alt="GENE_MAS5.png">
+
+<div class="node">
+<p><hr>
+<a name="RMA"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Options">Options</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#MAS-5_002e0">MAS 5.0</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">4 RMA</h2>
+
+<p>RMA is a popular model-based approach to normalization and calculating
+gene expression for Affymetrix microarrays. The approach consists of
+background correction, quantile normalization and a modeling
+probe-specific effects across multiple arrays using a median-polish
+method for fitting the model.
+
+   <p>The options for this method include:
+     <ul>
+<li>Use Background Correction
+This is almost always used, but can be disabled for experimentation.
+
+     <li>Normalization Method
+There are two different methods of normalizing the probe-level PM
+data: quantile normalization in which the intensities are replaced
+with mean intensity at that quantile, and a mean normalization in
+which mean PM intensity is set equal for all chips. The other option
+is to use no normalization (not generally recommended). The default is
+quantile normalization. 
+<li>Normalize AFFX Probesets
+This allows the AFFX probesets to be ignored during quantile normalization,
+which could potentially avoid a bias due to vastly different signal across
+chips in these control probesets. 
+</ul>
+
+   <p>Finally, you can select the name of the output file to write
+expression results. This file is a tab-delimited output file with
+columns labeled with CEL file names (without the .CEL extension) and
+rows corresponding to probesets. The default is <code>exprs-rma.txt</code>
+in the working directory.
+
+   <p><br><img src="GENE_RMA.png" alt="GENE_RMA.png">
+
+<div class="node">
+<p><hr>
+<a name="Options"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#RMA">RMA</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">5 Options</h2>
+
+<p>At present there is only a single preference that can be stored: the
+default CDF directory to use. We typically store all of the CDF files
+in one directory so they can be accessed. If you set this directory to
+a value, it will be used to find CDF files when running MAS or RMA.
+
+   <p><br><img src="GENE_Options.png" alt="GENE_Options.png">
+
+</body></html>
+
