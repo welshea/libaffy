@@ -1,0 +1,20 @@
+
+Building the Documentation
+==========================
+
+If you received a 'release' version of libaffy, there should be prebuilt
+DVI, PDF, Info, and HTML files already present in this directory.  You
+can stop reading now if that is the case.
+
+Otherwise, you may wish to rebuild the docs from the texinfo source.
+
+When using the SCons-based build system, documentation is built only
+when the 'build_docs=1' option is supplied on the command line at build
+time.
+
+You will need the GNU Texinfo tools to build the Info or HTML versions
+of the docs, or if you want to rebuild the DVI version.  If you want to
+rebuild the PDF version, SCons will try to detect an appropriate toolchain 
+to convert the DVI to a PDF file.  Most likely this means Ghostscript or 
+some kind of TeX distribution.
+
