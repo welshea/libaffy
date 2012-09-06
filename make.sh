@@ -1,0 +1,1 @@
+scons cflags_bundle=optimize
