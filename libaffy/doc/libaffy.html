@@ -1,0 +1,2026 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- This reference manual documents the 'libaffy' library, version
+1.3.
+
+Copyright C 2006 H. Lee Moffitt Cancer Center & Research Institute
+
+
+
+ -->
+<!-- Created on January 21, 2014 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>libaffy Reference Manual 1.3</title>
+
+<meta name="description" content="libaffy Reference Manual 1.3">
+<meta name="keywords" content="libaffy Reference Manual 1.3">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Top"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="libaffy-Reference-Manual"></a>
+<h1 class="settitle">libaffy Reference Manual</h1>
+
+<p>This reference manual documents the &rsquo;libaffy&rsquo; library, version
+1.3.
+</p>
+<p>Copyright &copy; 2006 H. Lee Moffitt Cancer Center &amp; Research Institute
+</p>
+<blockquote>
+</blockquote>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Introduction">1. Introduction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Building-and-Using-the-Library">2. Building and Using the Library</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Common-Tasks">3. Common Tasks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> 
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Data-Types">4. Data Types</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Function-Reference">5. Function Reference</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Concept-Index">Concept Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+
+<hr size="1">
+<a name="Introduction"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Building-and-Using-the-Library" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Building-and-Using-the-Library" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Introduction-1"></a>
+<h1 class="chapter">1. Introduction</h1>
+
+<p>&lsquo;<tt>libaffy</tt>&rsquo; provides various helpful functions for dealing with
+files containing Affymetrix (R)
+GeneChip (R) microarray data.  It provides a simple
+interface for performing a variety of tasks:
+</p><ul>
+<li> Loading data from &lsquo;<samp>CEL</samp>&rsquo;, &lsquo;<samp>CDF</samp>&rsquo;, and &lsquo;<samp>DAT</samp>&rsquo; files,
+either individually or at the chip level (both V3 and V4 format)
+</li><li> Representing this data in a convenient form
+</li><li> Perform standard operations, including image rotation, RMA and MAS5.0
+</li><li> Extensible codebase for developing Affymetrix chip-based applications.
+</li></ul>
+
+<p>The goal of this library is a reusable set of routines that could be
+integrated into different software. Since the code is written in C, 
+a reasonable effort has been made to ensure the code is
+memory-efficient and as minimal as possible. As more and more
+microarrays are generated and the individual chip size increases,
+these issues will become increasingly important. 
+</p>
+<p>The library can also be integrated into the bioconductor package
+(www.bioconductor.org) thereby providing the best of both options.
+</p>
+<hr size="6">
+<a name="Building-and-Using-the-Library"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Introduction" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Introduction" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Building-and-Using-the-Library-1"></a>
+<h1 class="chapter">2. Building and Using the Library</h1>
+
+<p>With a few minor exceptions, the &lsquo;<tt>libaffy</tt>&rsquo; source code is ANSI C89
+compliant, although it will take advantage of certain C99 and GNU C
+capabilities when they are present in the environment.  If you wish to
+use the provided build system, you must install <acronym title="@acronym{GNU}'s Not Unix">GNU</acronym> (@acronym{GNU}'s Not Unix) <code>make</code> (please make sure to use the
+latest version; some older versions have bugs which prevent proper
+interpretation of the makefiles).  The build system generally assumes a
+<acronym>POSIX</acronym>-like environment with basic utilities such as
+<code>rm</code>, <code>cp</code>, and so on.  When building under
+Microsoft(R) Windows(R), an emulation
+package such as Cygwin or MinGW will be necessary to provide these
+<acronym>POSIX</acronym> programs.  In the future build definition files for
+other environments may become available to eliminate this requirement.
+</p>
+<p>The end result of the build process will be a library file,
+&lsquo;<tt>libaffy.a</tt>&rsquo;, which can then be linked against application code.
+The default target of the top-level &lsquo;<tt>Makefile</tt>&rsquo; should produce the
+library.
+</p>
+<hr size="6">
+<a name="Common-Tasks"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Building-and-Using-the-Library" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#DAT-Images" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Building-and-Using-the-Library" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Common-Tasks-1"></a>
+<h1 class="chapter">3. Common Tasks</h1>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#DAT-Images">3.1 DAT Images</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">    Manipulating image data.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#CEL-Files">3.2 CEL Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">     Loading CEL files into data structures.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#CDF-File">3.3 CDF File</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">      Loading and manipulating the CDF information.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Processing-CEL-Files">3.4 Processing CEL Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">  Using RMA or MAS5.0 to extract expressions.
+</td></tr>
+</table>
+
+<hr size="6">
+<a name="DAT-Images"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Common-Tasks" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#CEL-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="DAT-Images-1"></a>
+<h2 class="section">3.1 DAT Images</h2>
+<p>The Affymetrix DAT image file is a simple structure consisting of a
+512-byte header followed by pixel data. A single function is used to
+load a named DAT file into the <code>AFFY_DATFILE</code> structure ( See section <a href="#File-Access-Functions">File Access Functions</a>, <code>affy_load_dat_file</code>). All
+pixels are currently loaded which can require significant amounts of
+memory for multiple chips. The in-memory structure is a series of
+fields that are listed within the header of the image, followed by a
+<code>AFFY_PIXREGION</code> object. The <code>AFFY_PIXREGION</code> structure is a
+convenient mechanism to store all or a subset of the image within a
+consistent structure.
+</p>
+<p>Once data is loaded, you can extract various subsection of the image
+by cell index (e.g. the probe location on the chip within the CEL
+file). An extremely important accessor function for this access is
+<code>affy_pixels_from_cell</code>, which is used to extract an
+<code>AFFY_PIXREGION</code> from the image based on CEL coordinates. Note,
+this is non-trivial since the image is generally slightly rotated and
+coordinates must be translated into the rotated space before
+determining the appropriate pixels. The function returns an
+<code>AFFY_PIXREGION</code> which can then be used to calculate a single
+summary (which is what Affymetrix does). 
+</p>
+<p>Given an <code>AFFY_PIXREGION</code>, you may want to write out the data in
+an alternate format. The image (or a subset of the image as defined by
+an <code>AFFY_PIXREGION</code>) can be written out as text or a TIF image (see
+<code>affy_write_pixel_region</code> for details).
+</p>
+<hr size="6">
+<a name="CEL-Files"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#DAT-Images" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#CDF-File" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="CEL-Files-1"></a>
+<h2 class="section">3.2 CEL Files</h2>
+<p>Typically Affymetrix microarray data is considered raw in the form of
+CEL files, despite the fact that the image is actually the most raw
+file format. Therefore, a central part of this library is the routine
+to read in a CEL file and the structure that stores a CEL file. Note:
+Affymetrix has developed a new version of their CEL file that is
+binary form (v4). In <code>libaffy</code>, the appropriate version is
+automatically detected and the appropriate code is called.
+</p>
+<p>The central function to use in loading a CEL file is
+<code>affy_load_cel_file</code>, which returns an <code>AFFY_CELFILE</code>
+structure. This structure holds raw data (as a matrix) and does not do
+any translation of the coordinates to probes. In addition, it stores
+the cell locations marked as outliers or masked within the CEL
+file. These are bit strings, therefore there are accessor functions
+(<code>iscontrol</code> and <code>ismasked</code>) to probe these values without
+knowing how to manipulate the bit strings.
+</p>
+<hr size="6">
+<a name="CDF-File"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#CEL-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Processing-CEL-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="CDF-File-1"></a>
+<h2 class="section">3.3 CDF File</h2>
+<p>Since the CEL file only consists of matrix of values (intensity,
+standard deviation and number of pixels), the CEL file is not useful
+without the corresponding CDF file. In order to load a CDF file, you
+use the <code>affy_load_cdf_file</code> routine. This function requires a
+chip type string, as defined by the basename of the CDF file (or
+equivalently the chip name within the CEL file) and a directory to
+search for the file in. The load routine will also look in the current
+directory for the file before giving up. Note that binary CDF file
+support is also automatically detected and used.
+</p>
+<p>The chip type may be inconvenient to always specify within an
+application, therefore a utility function
+(<code>affy_get_cdf_name_from_cel</code>) can be used to extract the
+appropriate chip type from within a CEL file (for instance, the first
+CEL file in a list accepted from the user).
+</p>
+<p>The CDF structure is the most complex, as is understandable given it&rsquo;s
+importance to processing the microarray data. The structure contains
+<code>AFFY_PROBE</code> structures that combine to form <code>AFFY_PROBESET</code>
+structures. Both the probe and probeset information is stored, so that
+access can occur in whichever mode is most appropriate. Specifically,
+<code>AFFY_PROBE</code> structures are accessible via (X,Y) coordinates or
+as a linear array of probes. A linear array of probesets can also be
+accessed (which in turn point to probes). Finally, a matrix of cell
+type descriptors are included so that normal, undefined, control and
+QC cells can be identified easily.
+</p>
+<p>The rma and mas5 code consists of many good examples of the use of the
+CDF structures.
+</p>
+<hr size="6">
+<a name="Processing-CEL-Files"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#CDF-File" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Processing-CEL-Files-1"></a>
+<h2 class="section">3.4 Processing CEL Files</h2>
+<p>Generally of most interest when loading a CEL file is converting the
+invidual probe values to actual probeset expressions. The
+<code>libaffy</code> contains code for both the MAS5.0 and RMA
+algorithms. The details of computing MAS5.0 and RMA are not described
+here, but many good descriptions do exist.
+</p>
+<p>The entry point for both MAS 5.0 and RMA consists of a single routine
+that is provided with an array of filenames and a flag structure. The
+filenames are assumed to be CEL files of the same type that are opened
+sequentially and processed. A meta-structure (<code>AFFY_CHIPSET</code>) is
+returned that represents the in-memory image of probeset expression and
+the corresponding CDF file. CEL file data is freed as chips are
+processed so memory usage is kept to a minimum. The flag structure is
+used to control the various parameters of the algorithm and are
+documented below and within the header files.
+</p>
+<p>There is nothing overly complex about the <code>rma</code> or <code>mas5</code>
+functions. These functions merely call the various routines that
+actual implement the algorithms. Therefore a good place to experiment
+is within this function, for instance by removing background
+correction as a processing step.
+</p>
+<hr size="6">
+<a name="Data-Types"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Processing-CEL-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Constants" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Common-Tasks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Data-Types-1"></a>
+<h1 class="chapter">4. Data Types</h1>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Constants">4.1 Constants</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">   Constant values used within libaffy.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Base-Types">4.2 Base Types</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">  Base types used to maintain compatibility across
+platforms.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Data-Structures">4.3 Data Structures</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">     Structures used for holding chip data.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Flag-Structures">4.4 Flag Structures</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">     Structures that modify algorithm settings.
+</td></tr>
+</table>
+
+<hr size="6">
+<a name="Constants"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Data-Types" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Base-Types" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Constants-1"></a>
+<h2 class="section">4.1 Constants</h2>
+<p>There are several constants defined within <code>libaffy</code>.
+</p><ul>
+<li> <code>AFFY_DAT_FILEMAGIC</code> &mdash; Magic number for DAT files.
+</li><li> <code>AFFY_CDF_BINARYFILEMAGIC</code> &mdash; Magic number for new CDF format.
+</li><li> <code>AFFY_CEL_BINARYFILE_MAGIC</code> &mdash; Magic number for new CEL format.
+</li></ul>
+
+<p>There are also location types, which are used in a CDF file as the
+cell type:
+</p><ul>
+<li> <code>AFFY_UNDEFINED_LOCATION</code> &mdash; Location is not specified within
+CDF.
+</li><li> <code>AFFY_QC_LOCATION</code> &mdash; Location designated QC (quality control)
+by CDF.
+</li><li> <code>AFFY_NORMAL_LOCATION</code> &mdash; Normal intensity location in CDF.
+</li></ul>
+
+<hr size="6">
+<a name="Base-Types"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Constants" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Base-Types-1"></a>
+<h2 class="section">4.2 Base Types</h2>
+<p>The <code>libaffy</code> library is generally platform-independent, despite
+the fact that the Affymetrix data files are very
+platform-specific. Therefore several different base types are defined
+that have known size on each platform regardless of potential
+differences in <code>sizeof(int)</code> for example.
+</p>
+<ul>
+<li> <code>affy_uint8</code> is an unsigned byte.
+</li><li> <code>affy_int16</code> is a signed 16-bit integer.
+</li><li> <code>affy_uint16</code> is an unsigned 16-bit integer.
+</li><li> <code>affy_int32</code> is a signed 32-bit integer.
+</li><li> <code>affy_uint32</code> is an unsigned 32-bit integer.
+</li></ul>
+
+<hr size="6">
+<a name="Data-Structures"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Base-Types" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fPIXREGION" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Data-Structures-1"></a>
+<h2 class="section">4.3 Data Structures</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#AFFY_005fPIXREGION">4.3.1 AFFY_PIXREGION</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">      Pixel region from DAT file.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fPOINT">4.3.2 AFFY_POINT</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          Structure for (x,y) coordinates.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fCELL">4.3.3 AFFY_CELL</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">           Description of a single cell, from CEL file or
+DAT.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fPROBE">4.3.4 AFFY_PROBE</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          Description of coordinates for a perfect match
+and mismatch probe.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fPROBESET">4.3.5 AFFY_PROBESET</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">       Collection of probes with a single name.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fCDFFILE">4.3.6 AFFY_CDFFILE</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        Structure for all info in a CDF file.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fCELFILE">4.3.7 AFFY_CELFILE</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        Structure for all info in a CEL file.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fDATFILE">4.3.8 AFFY_DATFILE</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        Structure for all info in a DAT file.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fCHIP">4.3.9 AFFY_CHIP</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">           Structure to hold collection of raw data and
+expressions.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#AFFY_005fCHIPSET">4.3.10 AFFY_CHIPSET</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        A collection of multiple chips of the same type.
+</td></tr>
+</table>
+
+<hr size="6">
+<a name="AFFY_005fPIXREGION"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Data-Structures" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fPOINT" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fPIXREGION-1"></a>
+<h3 class="subsection">4.3.1 AFFY_PIXREGION</h3>
+<p>A region of pixels with the dimensions. Allows for efficient
+subsetting by allocating minimal data to point at a particular spot of
+a larger image.
+</p>
+<pre class="verbatim">
+  affy_uint16 numrows;
+  affy_uint16 numcols;
+  unsigned int **data;          /* Must hold at least 16 bits; C89 says so. */
+
+</pre>
+<hr size="6">
+<a name="AFFY_005fPOINT"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fPIXREGION" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fCELL" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fPOINT-1"></a>
+<h3 class="subsection">4.3.2 AFFY_POINT</h3>
+<p>A simple structure to hold <code>(x,y)</code> coordinates together.
+</p><pre class="verbatim">  affy_int16 x;
+  affy_int16 y;
+</pre>
+<hr size="6">
+<a name="AFFY_005fCELL"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fPOINT" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fPROBE" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fCELL-1"></a>
+<h3 class="subsection">4.3.3 AFFY_CELL</h3>
+<p>A cell is a location defined by the <code>CEL</code> file. The cell consists
+of a summary value, the standard deviation in the measurement and the
+number of pixels involved in the calculatation (all from the
+<code>CEL</code> file). Can also indicate a number of pixels from the
+<code>DAT</code> file if the <code>DAT</code> file is loaded.
+</p>
+<pre class="verbatim">  double value;                 /* Intensity (mean pixel intensity).     */
+  double stddev;                /* Std. deviation of pixel intensity.    */
+  int numpixels;                /* Number of pixels composing this cell. */
+  AFFY_PIXREGION *pixels;       /* The actual pixels making up the cell. */
+</pre>
+<hr size="6">
+<a name="AFFY_005fPROBE"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fCELL" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fPROBESET" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fPROBE-1"></a>
+<h3 class="subsection">4.3.4 AFFY_PROBE</h3>
+<p>A probe is the basic unit of meta-information, consisting of both a
+perfect match point and a mismatch point (x,y coordinates). It also
+contains a pointer back to the probeset it belongs to.
+</p><pre class="verbatim">  int index;                    /* Unique id for probe                  */
+  AFFY_POINT mm;                /* Location of Mismatch value           */
+  AFFY_POINT pm;                /* Location of Perfect match value      */
+  struct affy_probeset_s *ps;   /* Pointer back to parent probe set     */
+</pre>
+<hr size="6">
+<a name="AFFY_005fPROBESET"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fPROBE" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fCDFFILE" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fPROBESET-1"></a>
+<h3 class="subsection">4.3.5 AFFY_PROBESET</h3>
+<p>The probeset consists of a set of individual probes. Eventually the
+probeset is summarized to a single value elsewhere, as a combination
+of multiple PM and MM probes.
+</p><pre class="verbatim">  int index;                    /* Unique id for probe set                */
+  char *name;                   /* A text description of probe set        */
+  int numprobes;                /* Total number of probes                 */
+  AFFY_PROBE *probe;            /* The probes themselves                  */
+</pre>
+<hr size="6">
+<a name="AFFY_005fCDFFILE"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fPROBESET" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fCELFILE" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fCDFFILE-1"></a>
+<h3 class="subsection">4.3.6 AFFY_CDFFILE</h3>
+<p>The CDF file holds all information about how probes are put together
+to make probesets, as well as what every cell location is. This
+information is represented in memory as a bunch of connections to
+other structures.
+</p>
+<p>Note that in this structure, the information is represented several
+different ways. First, a matrix of <code>cell_type</code> defines for each
+cell location what type of cell it is (normal, control, QC). Next,
+probes can be extracted by <code>(x,y)</code> coordinates directly. Or the
+probes can be accessed linearly (via <code>probe</code>) to iterate through
+all probes. Finally, all probesets can be iterated through &mdash; which
+ultimately links back to individual probes. These different access
+methods makes it convenient to do many different types of processing
+with the same structure.
+</p>
+<pre class="verbatim">  char *array_type;							/* Name of file/chip type */
+  int numrows;
+  int numcols;
+  int numprobes;                /* Count of total probes                   */
+  int numprobesets;             /* Number of probe sets                    */
+  int numqcunits;               /* Num quality control units               */
+
+  affy_uint8 **cell_type;       /* What kind of cell (normal, qc, control) */
+  AFFY_PROBE ***xy_ref;         /* row,col map to individual probe */
+  AFFY_PROBESET *probeset;      /* An array of probe sets, made of probes  */
+  AFFY_PROBE **probe;         	/* A linear array of probes
+  */
+</pre>
+<hr size="6">
+<a name="AFFY_005fCELFILE"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fCDFFILE" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fDATFILE" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fCELFILE-1"></a>
+<h3 class="subsection">4.3.7 AFFY_CELFILE</h3>
+<p>The CEL file contains all of the actual intensity information for a
+single microarray. These intensities are simply listed indexed by
+their coordinates on the microarray. Therefore, this structure is
+relatively simple.
+</p>
+<p>One noteworthy exception is the <code>mask</code> and <code>outlier</code>
+components. These are both bit strings that indicate for an
+<code>(x,y)</code> coordinate whether or not the cell location was marked as
+an outlier or masked. There are convenience functions
+<code>affy_iscontrol()</code>, <code>affy_isoutlier()</code> and
+<code>affy_ismasked()</code> that allow you to probe these values without
+knowing how they are implemented.
+</p><pre class="verbatim">  char *filename;
+  int numrows;
+  int numcols;
+  int nummasks;
+  int numoutliers;
+  AFFY_CELL **data;
+  affy_uint8 **mask;
+  affy_uint8 **outlier;
+</pre>
+<hr size="6">
+<a name="AFFY_005fDATFILE"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fCELFILE" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fCHIP" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fDATFILE-1"></a>
+<h3 class="subsection">4.3.8 AFFY_DATFILE</h3>
+<p>The DAT file is the original image of the microarray chip. The header
+contains a variety of fields that are not generally useful but
+captured in memory nonetheless. The geometry of the image and the
+pixels themselves are conveniently represented within the
+<code>pixels</code> variable, which is an <code>AFFY_PIXREGION</code> and is thus
+self-contained. 
+</p>
+<p>The grid corners are noted within the DAT image and are important for
+calculating the rotation of the image. This rotation can be calculated
+by using the <code>affy_pixels_from_cell()</code> or
+<code>affy_cell_to_pixel()</code> routines to translate between cell
+coordinates and actual pixels without having to know any further
+details of the algorithm.
+</p>
+<pre class="verbatim">  AFFY_PIXREGION pixels;
+  affy_uint32 numpixels;
+  AFFY_POINT grid_ul;
+  AFFY_POINT grid_ur;
+  AFFY_POINT grid_ll;
+  AFFY_POINT grid_lr;
+
+  char *experiment_name;
+  affy_uint16 scanspeed;
+  affy_float32 temperature;
+  affy_float32 laser_power;
+  char timestamp[19];           /* field width 18, plus NUL */
+  affy_uint32 numsamples_dc_offset;
+  affy_uint16 cellmargin;
+  char *scannerid;
+  char *probe_array_type;
+  affy_float64 meanpixel;
+  affy_float64 std_dev_pixel;
+  affy_float64 avg_dc_offset;
+  affy_float64 std_dev_dc_offset;
+  affy_uint16 pixel_width;
+  affy_uint16 pixel_height;
+  affy_uint32 minpixel;
+  affy_uint32 maxpixel;
+
+</pre>
+<hr size="6">
+<a name="AFFY_005fCHIP"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fDATFILE" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#AFFY_005fCHIPSET" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fCHIP-1"></a>
+<h3 class="subsection">4.3.9 AFFY_CHIP</h3>
+<p>A higher abstraction of a microarray experiment is the chip. Here, we
+store pointers to the various raw data sources
+(<code>CDF</code>,<code>CEL</code>,<code>DAT</code>) as well as the final result &mdash; an
+array of probeset expression values.
+</p>
+<pre class="verbatim">  char *filename;               /* Filename of chip                   */
+  AFFY_CDFFILE *cdf;            /* The chip description file          */
+  AFFY_CELFILE *cel;            /* For the CEL file information       */
+  AFFY_DATFILE *dat;            /* Underlying pixel data (if present) */
+
+  /* The true information - the probe sets */
+  int numprobesets;
+  double *probe_set;
+
+  /* A convenience ptr: not globally used (RMA) */
+  double *pm;
+</pre>
+<hr size="6">
+<a name="AFFY_005fCHIPSET"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fCHIP" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Flag-Structures" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="AFFY_005fCHIPSET-1"></a>
+<h3 class="subsection">4.3.10 AFFY_CHIPSET</h3>
+<p>A chipset holds multiple chips of the same type. There is an array of
+chips and a pointer to a CDF that describes all of the chips.
+</p>
+<pre class="verbatim"> /* Some common parameters needed, from the CDF file. */
+  int numchips;
+  int numrows;
+  int numcols;
+
+  /* Each CHIPSET has a single description file (CDF) */
+  AFFY_CDFFILE *cdf;
+
+  /* 
+   * These are the chips themselves. Note they are arrays of ptrs, 
+   * so things can be copied more easily
+   */
+  AFFY_CHIP **chip;
+</pre>
+
+
+
+
+<hr size="6">
+<a name="Flag-Structures"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#AFFY_005fCHIPSET" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#MAS5_002e0-Flags" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Flag-Structures-1"></a>
+<h2 class="section">4.4 Flag Structures</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#MAS5_002e0-Flags">4.4.1 MAS5.0 Flags</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#RMA-Flags">4.4.2 RMA Flags</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr size="6">
+<a name="MAS5_002e0-Flags"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Flag-Structures" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#RMA-Flags" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Flag-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="MAS5_002e0-Flags-1"></a>
+<h3 class="subsection">4.4.1 MAS5.0 Flags</h3>
+
+<p><code>MAS5_FLAGS</code> is defined as follows (can be seen in &lsquo;<tt>affy_mas5.h</tt>&rsquo;).
+</p><pre class="verbatim">
+/** 
+ * Structure to hold all relevant information
+ * about running an instance of MAS5.0. The
+ * defaults for these fields are in parenthesis, but
+ * the ultimate authority for these values is defined 
+ * within the file mas5/mas5_set_defaults.c.
+ */
+
+  /** (.) Default location to look for CDF file */
+  char *cdf_directory;
+
+  /** (True) Run MAS5.0 background correction */
+  Boolean use_background_correction;
+
+  /** (False) Use a mean normalization of all probes prior to processing */
+  Boolean use_mean_normalization;
+  /** (500) Mean normalize all probes to target mean value */
+  double mean_normalization_target_mean;
+
+
+  /** (False) Use a quantile normalization of all probes prior to processing.
+   *          This option is mutually exclusive with use_mean_normalization.
+   */
+  Boolean use_quantile_normalization;
+
+  /** (True) Scale probesets to a constant value, determined as scale_target */
+  Boolean use_probeset_scaling;
+  /** (500) If probeset scaling is used, this should be the target trimmed mean */
+  double scale_target;
+  /** (0.02) Percentage below which to remove from trimmed mean */
+  double trimmed_mean_low;
+  /** (0.98) Percentage above which to remove from trimmed mean */
+  double trimmed_mean_high;
+  
+  /** (false) Use Bioconductor compatability mode */
+  Boolean bioconductor_compatability;
+
+  /** (16) The number of rectangular zones on the chip */
+  int K; 
+  /** (100) MAS5.0 smooth parameter */
+  int smooth;
+  /** (0.5) MAS5.0 noiseFrac parameter */
+  double NoiseFrac;
+  /** (2.0e-20) MAS5.0 delta parameter */
+  double delta;
+  /** (0.03) MAS5.0 Contrast tau parameter */
+  double contrast_tau;
+  /** (10) MAS5.0 Scale tau parameter */
+  double scale_tau;
+
+</pre>
+<hr size="6">
+<a name="RMA-Flags"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#MAS5_002e0-Flags" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Flag-Structures" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="RMA-Flags-1"></a>
+<h3 class="subsection">4.4.2 RMA Flags</h3>
+<p><code>RMA_FLAGS</code> is defined as follows (can be seen in &lsquo;<tt>affy_rma.h</tt>&rsquo;).
+</p><pre class="verbatim">/** 
+ * Structure to hold all relevant information
+ * about running an instance of RMA. The defaults 
+ * for these fields are in parenthesis, but the
+ * ultimate authority for these values is defined
+ * within the file rma/rma_set_defaults.c.
+ */
+typedef struct rma_flag_struct
+{
+  /** (.) Default location to look for CDF file */
+  char *cdf_directory;
+
+  /** (True) Run background correction */
+  Boolean use_background_correction;
+
+  /** (True) Run normalization step */
+  Boolean use_normalization;
+
+  /** (True) Use AFFX (control) probes when normalizing */
+  Boolean normalize_affx_probes;
+
+  /** (False) Use mean normalization instead of quantile normalization */
+  Boolean use_mean_normalization;
+
+  /** (500) If using mean normalization, set mean equal to target */
+  double mean_normalization_target_value;
+
+  /** (False) Dump probe affinities to a file */
+  Boolean dump_probe_affinities;
+
+  /** (&quot;affinities.txt&quot;) Optional affinity filename */
+  char *affinities_filename;
+
+
+} RMA_FLAGS;
+</pre>
+<hr size="6">
+<a name="Function-Reference"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#RMA-Flags" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#File-Access-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Data-Types" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Function-Reference-1"></a>
+<h1 class="chapter">5. Function Reference</h1>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#File-Access-Functions">5.1 File Access Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">            Functions which load data from files.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Statistical-Functions">5.2 Statistical Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">            Functions providing statistical
+transformations.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Utility-Functions">5.3 Utility Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                Miscellaneous helper functions.
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+</pre></th></tr></table>
+
+<hr size="6">
+<a name="File-Access-Functions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Function-Reference" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Statistical-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="File-Access-Functions-1"></a>
+<h2 class="section">5.1 File Access Functions</h2>
+
+<dl>
+<dt><a name="index-AFFY_005fCDFFILE"></a><u>File Access:</u> <b>AFFY_CDFFILE</b><i> *affy_load_cdf_file (char <var>*chip_type</var>, char <var>*dir</var>)</i></dt>
+<dd>
+<p>Given a chip type and directory (generally, the chip type corresponds
+to a name, while the directory is a platform-specific directory name),
+attempt to load the specified &lsquo;<samp>CDF</samp>&rsquo; file into memory. The version
+of CDF file is automatically detected.
+</p>
+<p>If the load is successful, a new <code>AFFY_CDFFILE</code> structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+</p>
+<p>It is the caller&rsquo;s responsibility to free the returned structure using
+<code>affy_free_cdf_file()</code>.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-void"></a><u>File Access:</u> <b>void</b><i> affy_free_cdf_file (AFFY_CDFFILE <var>*cdf</var>)</i></dt>
+<dd>
+<p>Given a valid <code>AFFY_CDFFILE</code> structure, the associated storage is
+freed.
+</p>
+<p>It is an error to access the structure pointed to by <code>cdf</code>, or any
+of its members, after calling this function.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-AFFY_005fCELFILE"></a><u>File Access:</u> <b>AFFY_CELFILE</b><i> *affy_load_cel_file (char <var>*filename</var>)</i></dt>
+<dd>
+<p>Given a platform-dependent filename attempt to load the specified
+&lsquo;<samp>CEL</samp>&rsquo; file into memory.
+</p>
+<p>If the load is successful, a new <code>AFFY_CELFILE</code> structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+</p>
+<p>It is the caller&rsquo;s responsibility to free the returned structure using
+<code>affy_free_cel_file()</code>.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-1"></a><u>File Access:</u> <b>void</b><i> affy_free_cel_file (AFFY_CELFILE <var>*cf</var>)</i></dt>
+<dd>
+<p>Given a valid <code>AFFY_CELFILE</code> structure, the associated storage is
+freed.
+</p>
+<p>It is an error to access the structure pointed to by <code>cf</code>, or any
+of its members, after calling this function.
+</p></dd></dl>
+
+
+<dl>
+<dt><a name="index-AFFY_005fDATFILE"></a><u>File Access:</u> <b>AFFY_DATFILE</b><i> *affy_load_dat_file (char <var>*filename</var>)</i></dt>
+<dd>
+<p>Given a platform-specific filename attempt to load the specified
+&lsquo;<samp>DAT</samp>&rsquo; file into memory. All header fields and all pixel
+intensities are loaded in memory.
+</p>
+<p>If the load is successful, a new <code>AFFY_DATFILE</code> structure is filled
+out and a pointer to it is returned.  Otherwise, the library will end
+execution with a fatal error.
+</p>
+<p>It is the caller&rsquo;s responsibility to free the returned structure using
+<code>affy_free_dat_file()</code>.  However, only structures returned by
+direct allocation should be freed; those which were packaged inside
+another dynamically allocated structure will be handled when the
+containing structure is freed, and do not need to be explicitly freed.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-2"></a><u>File Access:</u> <b>void</b><i> affy_free_dat_file (AFFY_DATFILE <var>*df</var>)</i></dt>
+<dd>
+<p>Given a valid <code>AFFY_DATFILE</code> structure, the associated storage is
+freed.
+</p>
+<p>It is an error to access the structure pointed to by <code>df</code>, or any
+of its members, after calling this function.
+</p>
+</dd></dl>
+
+
+
+
+<dl>
+<dt><a name="index-AFFY_005fCHIPSET"></a><u>File Access:</u> <b>AFFY_CHIPSET</b><i> *affy_load_data (char <var>*dir</var>, char <var>**files</var>)</i></dt>
+<dd>
+<p>The data files comprising one or more chips listed in directory
+<code>dir</code> and specified by <code>files</code> are loaded.  Either of
+<code>dir</code> or <code>files</code> can be set to <code>NULL</code> (but not both).
+</p>
+<p>The &lsquo;<samp>CEL</samp>&rsquo; files named by <code>files</code> are opened, as is the
+corresponding &lsquo;<samp>CDF</samp>&rsquo; file. The resulting <code>AFFY_CHIPSET</code> is
+returned as a dynamically allocated object.
+</p>
+<p>It is the caller&rsquo;s responsibility to free the returned structure using
+<code>affy_free_chipset()</code>.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-3"></a><u>File Access:</u> <b>void</b><i> affy_free_chipset (AFFY_CHIPSET <var>*cs</var>)</i></dt>
+<dd>
+<p>Given a valid <code>AFFY_CHIPSET</code> structure, the associated storage is
+freed.
+</p>
+<p>It is an error to access the structure pointed to by <code>cs</code>, or any
+of its members, after calling this function.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-4"></a><u>File Access:</u> <b>void</b><i> affy_free_chip (AFFY_CHIP <var>*ch</var>)</i></dt>
+<dd>
+<p>Given a valid <code>AFFY_CHIP</code> structure, the associated storage is
+freed.
+</p>
+<p>It is an error to access the structure pointed to by <code>ch</code>, or any
+of its members, after calling this function.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-AFFY_005fCHIP"></a><u>File Access:</u> <b>AFFY_CHIP</b><i> *affy_load_chip (char <var>*filename</var>)</i></dt>
+<dd>
+
+<p>Initialize a <code>AFFY_CHIP</code> structure with the CEL data assumed to
+be in <code>filename</code>. No other data is loaded. A <code>NULL</code> pointer
+is returned on error.
+</p>
+</dd></dl>
+
+
+
+
+
+<dl>
+<dt><a name="index-char"></a><u>File Access:</u> <b>char</b><i> **affy_list_files (char <var>*directory</var>, char <var>*extension</var>)</i></dt>
+<dd>
+<p>Return a list of files within <code>directory</code> with the file extension
+<code>extension</code>. The return value is an array of filenames with a
+<code>NULL</code> as the last element (<code>argv</code> style). An empty list
+returns an array with one element, a <code>NULL</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-char-1"></a><u>File Access:</u> <b>char</b><i> *affy_get_next_line (FILE <var>*fp</var>)</i></dt>
+<dd>
+<p>Read a single line of text from the open filestream <code>fp</code>, trim
+any whitespace from both ends, and return the result.  <code>NULL</code> is
+returned on error or in the case of an empty string.
+</p>
+<p>The resulting pointer refers to static storage and should not be used
+across invocations of <code>affy_get_next_line()</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-5"></a><u>File Access:</u> <b>void</b><i> affy_unget_next_line (FILE <var>*fp</var>)</i></dt>
+<dd>
+<p>Causes the next invocation of <code>affy_get_next_line()</code> to return
+the current contents of the internal line buffer without reading
+another line from filestream <code>fp</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-6"></a><u>File Access:</u> <b>void</b><i> affy_reset_next_line (FILE <var>*fp</var>)</i></dt>
+<dd>
+<p>This function has the opposite effect from
+<code>affy_unget_next_line()</code>; the next invocation of
+<code>affy_get_next_line()</code> will return the next line from filestream
+<code>fp</code> rather than the current contents of the internal line
+buffer.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-7"></a><u>File Access:</u> <b>void</b><i> affy_skip_to_next_header (FILE <var>*fp</var>)</i></dt>
+<dd>
+<p>Lines will be read from filestream <code>fp</code> until the first
+non-whitespace character of a line is a left bracket (&rsquo;&lsquo;<samp>[</samp>&rsquo;&rsquo;).
+Any such line encountered will be the next line returned by
+<code>affy_get_next_line()</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int"></a><u>File Access:</u> <b>int</b><i> affy_read8 (FILE <var>*input</var>, void <var>*buf</var>)</i></dt>
+<dd>
+<p>Given an open input filestream <code>input</code> and a valid storage
+location pointed to by <code>buf</code>, one byte will be read and stored in
+<code>buf</code>.
+</p>
+<p>On success, &lsquo;<samp>0</samp>&rsquo; is returned.  On failure, &lsquo;<samp>-1</samp>&rsquo; is returned
+and the state of the target buffer is undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-1"></a><u>File Access:</u> <b>int</b><i> affy_read16 (FILE <var>*input</var>, void <var>*buf</var>)</i></dt>
+<dd>
+<p>Given an open input filestream <code>input</code> and a valid storage
+location pointed to by <code>buf</code>, two bytes will be read and stored in
+<code>buf</code>.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+</p>
+<p>On success, &lsquo;<samp>0</samp>&rsquo; is returned.  On failure, &lsquo;<samp>-1</samp>&rsquo; is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-2"></a><u>File Access:</u> <b>int</b><i> affy_read32 (FILE <var>*input</var>, void <var>*buf</var>)</i></dt>
+<dd>
+<p>Given an open input filestream <code>input</code> and a valid storage
+location pointed to by <code>buf</code>, four bytes will be read and stored in
+<code>buf</code>.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+</p>
+<p>On success, &lsquo;<samp>0</samp>&rsquo; is returned.  On failure, &lsquo;<samp>-1</samp>&rsquo; is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-3"></a><u>File Access:</u> <b>int</b><i> affy_read64 (FILE <var>*input</var>, void <var>*buf</var>)</i></dt>
+<dd>
+<p>Given an open input filestream <code>input</code> and a valid storage
+location pointed to by <code>buf</code>, eight bytes will be read and stored in
+<code>buf</code>.  The input stream is assumed to be in little-endian
+format; if the host platform is big-endian, the bytes will be swapped
+automatically.
+</p>
+<p>On success, &lsquo;<samp>0</samp>&rsquo; is returned.  On failure, &lsquo;<samp>-1</samp>&rsquo; is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-4"></a><u>File Access:</u> <b>int</b><i> affy_readchars (FILE <var>*input</var>, char <var>*buf</var>, size_t <var>numbytes</var>)</i></dt>
+<dd>
+<p>Given an open input filestream <code>input</code>, and a valid storage
+location pointed to by <code>buf</code> and of size <code>numbytes</code>, 
+at most <code>numbytes</code>-1 bytes will be read and stored in
+<code>buf</code>.  A &lsquo;<samp>NUL</samp>&rsquo; byte is then appended to the result.
+</p>
+<p>This is primarily a convenience function for reading character data
+into C-style strings; it is similar to <code>fgets()</code> except that
+newline characters have no special significance, only encountering an
+&lsquo;<samp>EOF</samp>&rsquo; or I/O error will cause a short read.
+</p>
+<p>On success, &lsquo;<samp>0</samp>&rsquo; is returned.  On failure, &lsquo;<samp>-1</samp>&rsquo; is returned
+and the contents of the target buffer are undefined.  The caller is
+responsible for clearing or handling errors on the filestream.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-5"></a><u>File Access:</u> <b>int</b><i> affy_readint(FILE <var>*input</var>)</i></dt>
+<dd>      
+<p>Given an open input filestream <code>input</code>, read what Affymetrix
+defines as an int (a 32-bit  integer) and return as an int
+type. This is an unsafe function that will silently return when errors
+occur. 
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-6"></a><u>File Access:</u> <b>int</b><i> affy_readushort(FILE <var>*input</var>)</i></dt>
+<dd>      
+<p>Given an open input filestream <code>input</code>, read what Affymetrix
+defines as a short (a 16-bit integer) and return as an int type. This
+is an unsafe function that will silently return when errors occur.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-int-7"></a><u>File Access:</u> <b>int</b><i> affy_readshort(FILE <var>*input</var>)</i></dt>
+<dd>      
+<p>Given an open input filestream <code>input</code>, read what Affymetrix
+defines as a short (a 16-bit integer) and return as an int type. This
+is an unsafe function that will silently return when errors occur.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-float"></a><u>File Access:</u> <b>float</b><i> affy_readfloat(FILE <var>*input</var>)</i></dt>
+<dd>      
+<p>Given an open input filestream <code>input</code>, read what Affymetrix
+defines as a float (a 32-bit floating point number) and return as a
+float type. This is an unsafe function that will silently return when
+errors occur.
+</p>
+</dd></dl>
+
+<hr size="6">
+<a name="Statistical-Functions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#File-Access-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Utility-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Statistical-Functions-1"></a>
+<h2 class="section">5.2 Statistical Functions</h2>
+
+<dl>
+<dt><a name="index-void-8"></a><u>Statistical:</u> <b>void</b><i> affy_mean_normalization (AFFY_CHIPSET <var>*d</var>, double <var>target_mean</var>)</i></dt>
+<dd>
+<p>Normalize an <code>AFFY_CHIPSET</code> containing one or more chips such
+that the mean intensity the chip (both perfect-match and mis-match
+probes) is equal across chips. The parameter <code>target_mean</code> is
+used as the mean intensity for all chips. Note this is not a trimmed
+mean and is performed on raw PM/MM values not expressions.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-double"></a><u>Statistical:</u> <b>double</b><i> affy_median_save (double <var>*x</var>, int <var>length</var>)</i></dt>
+<dd>
+<p>Calculate the median of <code>x</code> without disturbing the original
+ordering of <code>x</code>. The <code>length</code> of <code>x</code> must be specified.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-double-1"></a><u>Statistical:</u> <b>double</b><i> affy_median (double <var>*x</var>, int <var>length</var>)</i></dt>
+<dd>
+<p>Calculate the median of <code>x</code> but does not preserve the ordering of
+<code>x</code>. This saves allocating additional storage but allows a
+re-ordering of the original list.
+</p>
+<p>Side effect: The order of <code>x</code> will be changed.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-9"></a><u>Statistical:</u> <b>void</b><i> affy_get_row_median (double <var>**z</var>, double <var>*rdelta</var>, int <var>rows</var>, int <var>columns</var>)</i></dt>
+<dd>
+<p>Within the median polish step of RMA, calculate the median of each row
+of matrix <var>x</var>, return median values in <code>rdelta</code> which must be
+allocated by the caller. The dimensions of the matrix are provided as
+<code>rows</code> and <code>columns</code>.
+</p></dd></dl>
+
+
+<dl>
+<dt><a name="index-void-10"></a><u>Statistical:</u> <b>void</b><i> affy_get_column_median (double <var>**z</var>, double <var>*cdelta</var>, int <var>rows</var>, int <var>columns</var>)</i></dt>
+<dd>
+<p>Within the median polish step of RMA, calculate the median of each
+column in matrix <code>z</code>, returning the median values in
+<code>cdelta</code> which must be allocated by the caller. The dimensions
+of the matrix are provided as <code>rows</code> and <code>columns</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-8"></a><u>Statistical:</u> <b>int</b><i> affy_median_sort (const <var>void</var>, *p1 <var>const</var>, void <var>*p2</var>)</i></dt>
+<dd>
+<p>Helper function for qsort that sorts based on pointers to double
+values, used for median calculations.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-9"></a><u>Statistical:</u> <b>int</b><i> affy_qnorm_compare (const <var>void</var>, *p1 <var>const</var>, void <var>*p2</var>)</i></dt>
+<dd>
+<p>Helper function for qsort that sorts based on pointers to pointers of
+double values, used for quantile normalization.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-11"></a><u>Statistical:</u> <b>void</b><i> affy_rank_order (double <var>*rank</var>, double <var>**x</var>, int <var>n</var>)</i></dt>
+<dd><p>Gets ranks in a process identical to that of the R statistical
+package. It assumes that <code>x</code> of length <code>n</code> is sorted, and
+calculates the ranks taking into account ties. Results are stored in
+<code>rank</code>. 
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-12"></a><u>Statistical:</u> <b>void</b><i> affy_quantile_normalization (AFFY_CHIPSET <var>*d</var>)</i></dt>
+<dd>
+<p>This function differs from the RMA quantile normalization, in that the
+normalization is performed on all probes, not just the Perfect Match
+(PM) probes. Otherwise the process is identical.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-13"></a><u>Statistical:</u> <b>void</b><i> affy_pnorm_both (double <var>x</var>, double <var>*cum</var>, double <var>*ccum</var>, int <var>i_tail</var>, int <var>log_p</var>)</i></dt>
+<dd>
+<p>This is a function from the R statistics software, which is freely
+usable under the GNU license. It calculates the distribution function
+of the normal distribution. This is used as part of the background
+correction within RMA.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-14"></a><u>Statistical:</u> <b>void</b><i> rma_set_defaults (RMA_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>This routine sets flag structure <code>f</code> values to the defaults
+determined by the maintainers of <code>libaffy</code>. 
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-RMA_005fFLAGS"></a><u>Statistical:</u> <b>RMA_FLAGS</b><i> *rma_get_defaults ()</i></dt>
+<dd>
+<p>Returns a dynamically allocated <code>RMA_FLAGS</code> structure with
+defaults filled in.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-AFFY_005fCHIPSET-1"></a><u>Statistical:</u> <b>AFFY_CHIPSET</b><i> *rma (char <var>**filelist</var>, RMA_FLAGS <var>*f</var>)</i></dt>
+</dl>
+
+
+<dl>
+<dt><a name="index-void-15"></a><u>Statistical:</u> <b>void</b><i> rma_background_correct (AFFY_CHIPSET <var>*c</var>, int <var>chipnum</var>)</i></dt>
+<dd>
+<p>This procedure substracts an intensity-dependent background value from
+all probes, for chip <code>chipnum</code> in the chipset <code>c</code>. Consult
+the RMA publications for the precise details of this algorithm.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-16"></a><u>Statistical:</u> <b>void</b><i> quantile_normalization_chip (AFFY_CHIPSET <var>*c</var>, int <var>chipnum</var>, double <var>*mean</var>)</i></dt>
+<dd>
+<p>Perform a quantile normalization on chip <code>chipnum</code> of the chipset
+<code>c</code>. The entire process cannot be performed for a single chip,
+however the individual chips can be sorted and quantile means can be
+calculated and updated in the array <code>mean</code>. The probe values are
+not adjusted within this function, only <code>mean</code> values are accumulated.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-17"></a><u>Statistical:</u> <b>void</b><i> quantile_normalization_chipset (AFFY_CHIPSET <var>*c</var>, double <var>*mean</var>)</i></dt>
+<dd>
+<p>Perform the final step of a quantile normalization across an entire
+chipset. The values in <code>mean</code> represent the mean values for each
+quantile of the Perfect Match array. Perfect Match probe values are
+replaced by the values in <code>mean</code> for each chip, after sorting to
+match quantiles with means.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-18"></a><u>Statistical:</u> <b>void</b><i> rma_signal (AFFY_CHIPSET <var>*c</var>, RMA_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>Calculate the signal for a probeset, from a set of probes, for all
+chips in <code>c</code>. This is done by defining a model of probes for a
+probeset, and fitting the data to this model. The model-fitting is
+performed via a median polish. Flags that modify the default behavior
+of this algorithm can be passed via <code>f</code>.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-19"></a><u>Statistical:</u> <b>void</b><i> median_polish (double <var>**z</var>, int <var>numprobes</var>, int <var>numchips</var>, double <var>*results</var>, double <var>*affinities</var>)</i></dt>
+<dd>
+<p>Uses the median polish algorithm to fit a model consisting of
+co-efficients given in <code>z</code>, a <code>numprobes</code> by <code>numchips</code>
+matrix. The results are stored for return in <code>results</code> and the
+residuals are return in <code>affinities</code>. The <code>results</code> are the
+actual probeset signal and the <code>affinities</code> are representative of
+the estimated binding efficiency of each probe.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-MAS5_005fFLAGS"></a><u>Statistical:</u> <b>MAS5_FLAGS</b><i> *mas5_get_defaults ()</i></dt>
+<dd>
+<p>Returns a dynamically allocated <code>MAS5_FLAGS</code> structure with
+defaults filled in.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-void-20"></a><u>Statistical:</u> <b>void</b><i> mas5_set_defaults (MAS5_FLAGS <var>*f</var>)</i></dt>
+<dd>
+
+<p>This routine sets flag structure <code>f</code> values to the defaults
+determined by the maintainers of <code>libaffy</code>. 
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-AFFY_005fCHIPSET-2"></a><u>Statistical:</u> <b>AFFY_CHIPSET</b><i> *mas5 (char <var>**filelist</var>, MAS5_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>Performs the MAS 5.0 algorithm for calculating expression over a list
+of files given by <code>filelist</code>. Flags modifying the default
+behavior of MAS 5.0 can be given as <code>f</code> (or <code>NULL</code> for defaults).
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-10"></a><u>Statistical:</u> <b>int</b><i> mas5_background_correction (AFFY_CHIPSET <var>*c</var>, MAS5_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>Performs the Affymetrix MAS 5.0 background correction on the chips in
+<code>c</code>. Flags that may modify the algorithm are provided in
+<code>f</code>. This process involves calculating zones and subtracting
+weighted averages from different zones. Consult the Affymetrix
+documentation for the details of this algorithm.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-11"></a><u>Statistical:</u> <b>int</b><i> mas5_signal (AFFY_CHIPSET <var>*c</var>, MAS5_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>Use the MAS 5.0 algorithm to calculate signal values, for the chipset
+<code>c</code>. Flags that may modify the algorithm are given in
+<code>f</code>. This process calculates Tukey&rsquo;s biweight on the difference
+from perfect match and ideal mismatch.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-int-12"></a><u>Statistical:</u> <b>int</b><i> mas5_scale (AFFY_CHIPSET <var>*c</var>, MAS5_FLAGS <var>*f</var>)</i></dt>
+<dd>
+<p>Performs the Affymetrix scaling function, which normalizes expression
+values such that the trimmed mean of each chip in <code>c</code> is set to a
+target value. This value is defined as <code>f-&gt;scale_target</code> with
+upper and lower bounds defined by <code>f-&gt;trimmed_mean_low</code> and
+<code>f-&gt;trimmed_mean_high</code>.
+</p>
+</dd></dl>
+
+<hr size="6">
+<a name="Utility-Functions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Statistical-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Utility-Functions-1"></a>
+<h2 class="section">5.3 Utility Functions</h2>
+
+<dl>
+<dt><a name="index-char-2"></a><u>Utility:</u> <b>char</b><i> *affy_get_cdf_name (char <var>*buf</var>)</i></dt>
+<dd>
+<p>Given the &lsquo;<samp>DatHeader</samp>&rsquo; portion of a CEL file in <code>buf</code>, the
+corresponding CDF filename is returned.
+</p>
+<p>New storage is allocated for the resultant string, which must be freed
+by the caller.  <code>NULL</code> is returned in the case of insufficient
+memory.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-char-3"></a><u>Utility:</u> <b>char</b><i> *affy_get_cdf_name_from_cel (char <var>*filename</var>)</i></dt>
+<dd>
+<p>Given a CEL filename <code>filename</code>, open the CEL file, determine the
+corresponding CDF filename, and return the resultant string.
+</p>
+<p>The library will end execution with a fatal exception on I/O error.
+</p>
+<p>New storage is allocated on success, which must be freed by the
+caller.  <code>NULL</code> is returned in the case of insufficient memory.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-double-2"></a><u>Utility:</u> <b>double</b><i> **affy_matrix_from_cel (AFFY_CELFILE <var>*cf</var>)</i></dt>
+<dd>
+<p>This function is provided as a convienence to quickly extract the cell
+intensity values from a CEL file without dealing with individual cell
+structures.  Given an initialized CEL file structure <code>cf</code>, the
+cell intensity values are copied into a two-dimensional array and the
+resultant pointer is returned.  The array is guaranteed to be
+contiguous in memory.
+</p>
+<p>If the array could not be allocated due to insufficient memory,
+<code>NULL</code> is returned.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-21"></a><u>Utility:</u> <b>void</b><i> affy_dump_dat_hdr (AFFY_DATFILE <var>*df</var>)</i></dt>
+<dd>
+<p>Given an initialized DAT file structure <code>df</code>, a human-readable
+summary of the file header information is written to standard output.
+Fields are written one per line.  It should be noted that not all
+fields necessarily contain valid data in every DAT file, but they will
+be printed regardless.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-AFFY_005fPIXREGION"></a><u>Utility:</u> <b>AFFY_PIXREGION</b><i> *affy_pixels_from_cell(AFFY_CHIP <var>*cp</var>, int <var>x</var>, int <var>y</var>)</i></dt>
+<dd>
+<p>Given a AFFY_CHIP structure <code>cp</code> containing at least valid CDF and
+DAT structures, return the pixels associated with cell coordinate
+(<code>x</code>,<code>y</code>). Rotation of the grid is considered, as defined by
+corner coordinates within the DAT file.
+</p>
+<p>If the coordinates are not valid, a <code>NULL</code> pointer is returned.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-AFFY_005fPOINT"></a><u>Utility:</u> <b>AFFY_POINT</b><i> affy_cell_to_pixel(AFFY_CHIP <var>*cp</var>, int <var>x</var>, int <var>y</var>)</i></dt>
+<dd>
+
+<p>Given a AFFY_CHIP structure <code>cp</code> containing at least valid CDF and
+DAT structures, return the image coordinates corresponding to upper
+left corner of the cell. This takes into account rotation of the grid.
+</p>
+
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-22"></a><u>Utility:</u> <b>void</b><i> affy_write_expressions (AFFY_CHIPSET <var>*c</var>, char <var>*filename</var>)</i></dt>
+<dd>
+<p>Opens the platform-dependent filename given by <code>filename</code> and
+writes out the gene expression data from each chip in the chipset
+<code>c</code>.
+</p>
+<p>The library will halt execution with a fatal exception on error.
+</p>
+</dd></dl>
+
+<dl>
+<dt><a name="index-void-23"></a><u>Utility:</u> <b>void</b><i> affy_write_pixel_region(AFFY_PIXREGION <var>*pr</var>, char <var>*filename</var>)</i></dt>
+<dd>
+<p>Writes the AFFY_PIXREGION <code>pr</code> to a platform-dependent file given
+by <code>filename</code>. If TIFF image support is compiled into libaffy,
+the output will be a tiff image, otherwise a tab-delimited text file
+containing the intensities in the region.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-Boolean"></a><u>Utility:</u> <b>Boolean</b><i> affy_ismasked (AFFY_CHIP <var>*chip</var>, int <var>x</var>, int <var>y</var>)</i></dt>
+<dd>
+<p>Given an initialized chip structure <code>chip</code> and cell coordinates
+<code>x</code> and <code>y</code>, test whether the cell is masked.
+</p>
+<p><code>True</code> is returned if the cell is masked, <code>False</code> if not.
+</p>
+</dd></dl>
+
+
+<dl>
+<dt><a name="index-Boolean-1"></a><u>Utility:</u> <b>Boolean</b><i> affy_iscontrol (AFFY_CHIP <var>*chip</var>, int <var>x</var>, int <var>y</var>)</i></dt>
+<dd>
+<p>Given an initialized chip structure <code>chip</code> and cell coordinates
+<code>x</code> and <code>y</code>, test whether the cell is a control location.
+</p>
+<p><code>True</code> is returned if the cell is a control location,
+<code>False</code> if the cell is a normal location.
+</p>
+</dd></dl>
+
+<hr size="6">
+<a name="Concept-Index"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Utility-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[ &gt; ]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Function-Reference" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[ &gt;&gt; ]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Concept-Index-1"></a>
+<h1 class="unnumbered">Concept Index</h1>
+
+<hr size="6">
+<a name="SEC_Contents"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<h1>Table of Contents</h1>
+<div class="contents">
+
+<ul class="toc">
+  <li><a name="toc-Introduction-1" href="#Introduction">1. Introduction</a></li>
+  <li><a name="toc-Building-and-Using-the-Library-1" href="#Building-and-Using-the-Library">2. Building and Using the Library</a></li>
+  <li><a name="toc-Common-Tasks-1" href="#Common-Tasks">3. Common Tasks</a>
+  <ul class="toc">
+    <li><a name="toc-DAT-Images-1" href="#DAT-Images">3.1 DAT Images</a></li>
+    <li><a name="toc-CEL-Files-1" href="#CEL-Files">3.2 CEL Files</a></li>
+    <li><a name="toc-CDF-File-1" href="#CDF-File">3.3 CDF File</a></li>
+    <li><a name="toc-Processing-CEL-Files-1" href="#Processing-CEL-Files">3.4 Processing CEL Files</a></li>
+  </ul></li>
+  <li><a name="toc-Data-Types-1" href="#Data-Types">4. Data Types</a>
+  <ul class="toc">
+    <li><a name="toc-Constants-1" href="#Constants">4.1 Constants</a></li>
+    <li><a name="toc-Base-Types-1" href="#Base-Types">4.2 Base Types</a></li>
+    <li><a name="toc-Data-Structures-1" href="#Data-Structures">4.3 Data Structures</a>
+    <ul class="toc">
+      <li><a name="toc-AFFY_005fPIXREGION-1" href="#AFFY_005fPIXREGION">4.3.1 AFFY_PIXREGION</a></li>
+      <li><a name="toc-AFFY_005fPOINT-1" href="#AFFY_005fPOINT">4.3.2 AFFY_POINT</a></li>
+      <li><a name="toc-AFFY_005fCELL-1" href="#AFFY_005fCELL">4.3.3 AFFY_CELL</a></li>
+      <li><a name="toc-AFFY_005fPROBE-1" href="#AFFY_005fPROBE">4.3.4 AFFY_PROBE</a></li>
+      <li><a name="toc-AFFY_005fPROBESET-1" href="#AFFY_005fPROBESET">4.3.5 AFFY_PROBESET</a></li>
+      <li><a name="toc-AFFY_005fCDFFILE-1" href="#AFFY_005fCDFFILE">4.3.6 AFFY_CDFFILE</a></li>
+      <li><a name="toc-AFFY_005fCELFILE-1" href="#AFFY_005fCELFILE">4.3.7 AFFY_CELFILE</a></li>
+      <li><a name="toc-AFFY_005fDATFILE-1" href="#AFFY_005fDATFILE">4.3.8 AFFY_DATFILE</a></li>
+      <li><a name="toc-AFFY_005fCHIP-1" href="#AFFY_005fCHIP">4.3.9 AFFY_CHIP</a></li>
+      <li><a name="toc-AFFY_005fCHIPSET-1" href="#AFFY_005fCHIPSET">4.3.10 AFFY_CHIPSET</a></li>
+    </ul></li>
+    <li><a name="toc-Flag-Structures-1" href="#Flag-Structures">4.4 Flag Structures</a>
+    <ul class="toc">
+      <li><a name="toc-MAS5_002e0-Flags-1" href="#MAS5_002e0-Flags">4.4.1 MAS5.0 Flags</a></li>
+      <li><a name="toc-RMA-Flags-1" href="#RMA-Flags">4.4.2 RMA Flags</a></li>
+    </ul>
+</li>
+  </ul></li>
+  <li><a name="toc-Function-Reference-1" href="#Function-Reference">5. Function Reference</a>
+  <ul class="toc">
+    <li><a name="toc-File-Access-Functions-1" href="#File-Access-Functions">5.1 File Access Functions</a></li>
+    <li><a name="toc-Statistical-Functions-1" href="#Statistical-Functions">5.2 Statistical Functions</a></li>
+    <li><a name="toc-Utility-Functions-1" href="#Utility-Functions">5.3 Utility Functions</a></li>
+  </ul></li>
+  <li><a name="toc-Concept-Index-1" href="#Concept-Index">Concept Index</a></li>
+</ul>
+</div>
+<hr size="1">
+<a name="SEC_About"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<h1>About This Document</h1>
+<p>
+  This document was generated by <em>Welsh</em> on <em>January 21, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+</p>
+<p>
+  The buttons in the navigation panels have the following meaning:
+</p>
+<table border="1">
+  <tr>
+    <th> Button </th>
+    <th> Name </th>
+    <th> Go to </th>
+    <th> From 1.2.3 go to</th>
+  </tr>
+  <tr>
+    <td align="center"> [ &lt; ] </td>
+    <td align="center">Back</td>
+    <td>Previous section in reading order</td>
+    <td>1.2.2</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &gt; ] </td>
+    <td align="center">Forward</td>
+    <td>Next section in reading order</td>
+    <td>1.2.4</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &lt;&lt; ] </td>
+    <td align="center">FastBack</td>
+    <td>Beginning of this chapter or previous chapter</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td align="center"> [ Up ] </td>
+    <td align="center">Up</td>
+    <td>Up section</td>
+    <td>1.2</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &gt;&gt; ] </td>
+    <td align="center">FastForward</td>
+    <td>Next chapter</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td align="center"> [Top] </td>
+    <td align="center">Top</td>
+    <td>Cover (top) of document</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [Contents] </td>
+    <td align="center">Contents</td>
+    <td>Table of contents</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [Index] </td>
+    <td align="center">Index</td>
+    <td>Index</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [ ? ] </td>
+    <td align="center">About</td>
+    <td>About (help)</td>
+    <td> &nbsp; </td>
+  </tr>
+</table>
+
+<p>
+  where the <strong> Example </strong> assumes that the current position is at <strong> Subsubsection One-Two-Three </strong> of a document of the following structure:
+</p>
+
+<ul>
+  <li> 1. Section One
+    <ul>
+      <li>1.1 Subsection One-One
+        <ul>
+          <li>...</li>
+        </ul>
+      </li>
+      <li>1.2 Subsection One-Two
+        <ul>
+          <li>1.2.1 Subsubsection One-Two-One</li>
+          <li>1.2.2 Subsubsection One-Two-Two</li>
+          <li>1.2.3 Subsubsection One-Two-Three &nbsp; &nbsp;
+            <strong>&lt;== Current Position </strong></li>
+          <li>1.2.4 Subsubsection One-Two-Four</li>
+        </ul>
+      </li>
+      <li>1.3 Subsection One-Three
+        <ul>
+          <li>...</li>
+        </ul>
+      </li>
+      <li>1.4 Subsection One-Four</li>
+    </ul>
+  </li>
+</ul>
+
+<hr size="1">
+<p>
+ <font size="-1">
+  This document was generated by <em>Welsh</em> on <em>January 21, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
