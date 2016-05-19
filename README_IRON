@@ -1,0 +1,74 @@
+IRON normalization normalizes all samples against a common reference chip.
+This chip can either be an existing chip, or an artificial chip generated
+computationally.  The "findmedian" and "pairgen" commands can be used to
+identify or create a reference chip.  "iron" and "iron_generic" are used to
+normalize CEL files or text spreadsheets of intensities.  Run each program
+with the --help option for a full list of available options.
+
+I recommend using findmedian to identify the least-distant "median" sample,
+rather than computationally creating an artificial one.
+
+*DO NOT* use log-transformed intensities as input to any of these programs
+unless you really really mean to do so, since all data is log-transformed
+internally within the software.  findmedian can now input pre-logged data
+and treat it appropriately with the --nolog2 option, but iron_generic and
+pairgen still expect the input to be unlogged.
+
+
+
+Common example usage situations are given below:
+
+
+Find median CEL file at the probe level, when memory usage is not a concern:
+    findmedian -c cdf_file_dir/ *.CEL > findmedian.txt
+
+Find median CEL file at the probeset level, when datasets are VERY large:
+    findmedian -c cdf_file_dir/ --probesets *.CEL > findmedian.txt
+
+Find median sample in a spreadsheet of unlogged intensity data:
+    findmedian --spreadsheet spreadsheet.txt > findmedian.txt
+
+Find median sample in a spreadsheet of unlogged proteomics data, where
+missing values are reported as blanks or zeroes:
+    findmedian --spreadsheet --ignore-weak spreadsheet.txt > findmedian.txt
+
+Extract the median sample from the findmedian.txt output under UNIX/Linux:
+    cat findmedian.txt | grep "^Median CEL:" | cut -f 4
+
+
+
+Create a CEL file containing the median intensity for each probeset:
+    pairgen -c cdf_file_dir/ --median *.CEL -o median.CEL
+
+Create a CEL file containing the average intensity for each probeset:
+    pairgen -c cdf_file_dir/ --average *.CEL -o average.CEL
+
+NOTE -- pairgen will generate a CEL file that works with libaffy, but may not
+be valid enough to work with other software packages, such as Affymetrix
+Power Tools or Bioconductor.
+
+
+
+Normalize CEL files against the reference chip:
+    iron -c cdf_file_dir/ --norm-iron=median_sample.CEL *.CEL -o output.txt
+
+Normalize unlogged sample intensities in a spreadsheet:
+    iron_generic --norm-iron=median_sample spreadsheet.txt *.CEL -o output.txt
+
+NOTE -- mixing and matching CEL files and spreadsheet data is currently
+unsupported.  Thus, for iron_generic, pairgen cannot be used, and
+findmedian should be used to identify the median sample within the
+spreadsheet.
+
+
+
+Proteomics data exhibits a very different density distribution than
+microarray data, and generally only exhibits global scaling shifts in
+intensities between samples.  Non-specific RNA binding background correction
+should not be applied to proteomics data....  Intensities should be output
+unlogged so that missing values (zeroes) will be preserved as zeroes, rather
+than output as -nan.  '\' indicates wrapping the command line to the next
+line:
+
+    iron_generic --norm-iron=median_sample --proteomics spreadsheet.txt -o \
+                 output.txt
