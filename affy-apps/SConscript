@@ -1,0 +1,43 @@
+# -*- python -*-
+
+## SCons imports
+Import('rootEnv')
+
+## Subdirectories containing discrete applications.  Each of these will
+## be globbed for .c files.
+#appsubdirs = ['mas5', 'rma', 'datExtractor', 'calvindump', 'pairgen', 'findmedian', 'iron_generic', 'iron']
+appsubdirs = ['mas5', 'rma', 'calvindump', 'pairgen', 'findmedian', 'iron_generic', 'iron']
+
+libs = ['affy', 'z', 'utils', 'txtlog']
+
+# static linked GCC
+
+# Non-win32 platforms need libm added explicitly
+if rootEnv['PLATFORM'] != 'win32':
+    if rootEnv['PLATFORM'] != 'cygwin':
+#       For some linkers that are "too smart", -lm must come AFTER the others
+#       libs = ['m'] + libs
+        libs = libs + ['m']
+
+# executables under cygwin must end with .exe -- XXX test this under
+# native win32 also
+if rootEnv['PLATFORM'] == 'cygwin':
+    exe_suffix = '.exe'
+else:
+    exe_suffix = ''
+
+for dir in appsubdirs:
+    rootEnv.Program(dir + '/' + dir + exe_suffix, Glob(dir + '/*.c'),
+                    LIBS=libs)
+
+# affydump needs special handling
+if 'AFFY_HAVE_NETCDF' in rootEnv['CPPDEFINES']:
+    affydump_libs = libs + ['netcdf']
+else:
+    affydump_libs = libs
+
+rootEnv.Program('affydump/affydump', Glob('affydump/*.c'), LIBS=affydump_libs)
+
+
+#SConscript('GENE', exports=['rootEnv'])
+
