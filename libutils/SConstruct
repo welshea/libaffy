@@ -1,0 +1,178 @@
+# -*- python -*-
+
+#EnsurePythonVersion(2,0)
+from __future__ import print_function    # python2/3 compatability
+
+### Python imports
+import platform
+import glob
+import sys
+
+### Check for specified compiler tool or cflags bundle on the command line.
+alt_compiler = ARGUMENTS.get('compiler', None)
+cflags_bundle = ARGUMENTS.get('cflags_bundle', None)
+
+tool_list = ['default']
+
+if alt_compiler:
+    tool_list.append(alt_compiler)
+
+### Create the main compilation environment.
+cpp_defines = { 
+    platform.system(): None,
+## Uncomment below to remove assertions
+#    'NDEBUG': None,
+    }
+
+utilsEnv = Environment(tools = tool_list, 
+                       CPPPATH = ['#/', '#/argp', '#/getopt'],
+                       CPPDEFINES = cpp_defines)
+
+### Local functions
+def emit_endian_header(target, source, env):
+    """Interrogate platform endianness and create endian_config.h to match"""
+    endian = ""
+
+    if (sys.byteorder == 'big'):
+        endian = 'LIBUTILS_BIG_ENDIAN'
+    else:
+        endian = 'LIBUTILS_LITTLE_ENDIAN'
+
+    contents =  """
+#ifndef __ENDIAN_CONFIG_H
+# define __ENDIAN_CONFIG_H
+# ifndef %s
+#   define %s
+# endif
+#endif
+""" % (endian, endian)
+
+    try:
+        f = open(str(target[0]), mode='w')
+        print (contents, file=f)
+        f.close()
+    except:
+        return 1
+
+    return None
+
+### Designate source files for each library.
+
+## libtxtlog
+txtlog_srcs = glob.glob('logging/txt/*.c')
+
+## libutils
+srcdirs = ['logging', 'text', 'sorting', 'matrix', 'argp', 'getopt']
+utils_srcs  = [ glob.glob(x + '/*.c') for x in srcdirs ]
+utils_srcs += Split("""
+    utils_ver.c
+    endian.c
+""")
+
+
+## Simple-minded way of guessing the tool package based on the value
+## of 'CC' in the environment.  Will NOT always work properly.  This
+## is currently kind of a weakness in SCons.
+def guess_compiler_tool(cc_str, platform):
+    if cc_str == 'gcc':
+        if platform == 'cygwin':
+            return 'cygmingw'
+        else:
+            return 'gcc'
+    elif cc_str == 'xlc':
+        return 'aixcc'
+    elif cc_str == 'bcc32':
+        return 'bcc32'
+    elif cc_str == 'icc' or cc_str == 'icl':
+        return 'intelc'
+    elif cc_str == 'mwcc':
+        return 'mwcc'
+    elif cc_str == 'cl':
+        return 'msvc'
+
+## Adjust special compiler flags here.  Each compiler tool has its own
+## bundles of named flags.  However, the idea is that each should
+## support a few common bundles (optimize, debug, etc.) alongside
+## compiler-specific bundles.  Bundle selection is done on the command
+## line.
+cflags_dict = { 'intelc': { 'optimize': ['-O3', '-ipo', '-xN'],
+                            'debug': ['-g'], 
+                            'strict': ['-Wall', '-strict-ansi'], },
+                'gcc': { 'strict_gcc2x': ['--static', '-ansi', '-pedantic', '-Wall'],
+                         'strict_gcc3x': ['--static', '-std=c99', '-pedantic', '-Wall'],
+                         'strict': ['--static', '-pedantic', '-Wall'],
+                         'optimize': ['--static', '-O3', '-finline', '-funroll-loops', '-pdeantic', '-Wall', '-Wno-unused'],
+                         'datextractor': ['-DSTORE_CEL_QC', '--static', '-O3', '-finline', '-funroll-loops'],
+                         'profile': ['--static', '-g', '-pg'],
+                         'debug': ['-g'],
+                         'debugo3': ['-g', '-O3', '-fno-omit-frame-pointer'], },
+                'cygmingw': { 'strict_gcc2x': ['--static', '-ansi', '-pedantic', '-Wall'],
+                              'strict_gcc3x': ['--static', '-std=c99', '-pedantic', '-Wall'],
+                              'strict': ['--static', '-pedantic', '-Wall'],
+                              'optimize': ['--static', '-O3', '-finline', '-funroll-loops', '-pedantic', '-Wall', '-Wno-unused'],
+                              'datextractor': ['-DSTORE_CEL_QC', '--static', '-O3', '-finline', '-funroll-loops'],
+                              'debug': ['--static', '-g'], },
+                'msvc': { 'optimize': ['/Ox'],
+                          'debug': ['/Od', '/Zi'],
+                          'strict': ['/Wall', '/Zi'], },
+                }
+
+if cflags_bundle:
+    if alt_compiler:
+        compiler_name = alt_compiler
+    else:
+        compiler_name = guess_compiler_tool(utilsEnv['CC'],
+                                            utilsEnv['PLATFORM'])
+    utilsEnv.Append(CCFLAGS = cflags_dict[compiler_name][cflags_bundle])
+
+
+# Compile statically linked gcc binaries, for maximum binary portability.
+# To avoid various problems, set CC rather than adding LINKFLAGS.
+# Add -w to cygwin to get rid of "warning: ISO C requires whitespace after the macro name"
+#  I couldn't figure out which -Wno- option to toggle, so I just kill them all
+if cflags_bundle != 'debug':
+  if cflags_bundle != 'profile':
+    if utilsEnv['CC'] == 'gcc':
+      utilsEnv['CC'] = 'gcc'
+    if utilsEnv['PLATFORM'] == 'cygwin':
+      utilsEnv['CC'] = 'i686-pc-mingw32-gcc.exe -w'
+  if cflags_bundle == 'profile':
+    if utilsEnv['CC'] == 'gcc':
+      utilsEnv['CC'] = 'gcc -pg'
+    if utilsEnv['PLATFORM'] == 'cygwin':
+      utilsEnv['CC'] = 'i686-pc-mingw32-gcc.exe -pg -w'
+
+
+### Configuration checks
+# These *MUST* come later on, after cflags and such are done with, in order
+# to handle cygwin -mno-cygwin stuff correctly
+confCtx = Configure(utilsEnv, config_h='sys_config.h')
+
+if not confCtx.CheckDeclaration('strdup', '#include <string.h>'):
+    utils_srcs += ['sys/strdup.c']
+
+if not confCtx.CheckDeclaration('strcasecmp', '#include <string.h>'):
+    utils_srcs += ['sys/strcasecmp.c']
+
+if not confCtx.CheckDeclaration('strnlen', '#include <string.h>'):
+    utils_srcs += ['sys/strnlen.c']
+
+if not confCtx.CheckDeclaration('strndup', '#include <string.h>'):
+    utils_srcs += ['sys/strndup.c']
+
+confCtx.Finish()
+
+### Compiler configuration section
+
+### Library targets.
+utilsEnv.StaticLibrary(target = 'utils', source = utils_srcs)
+utilsEnv.StaticLibrary(target = 'txtlog', source = txtlog_srcs)
+
+### Regenerate the endian config header.
+utilsEnv.Command('endian_config.h', None, emit_endian_header)
+
+####
+## Return our environment for manipulation by a higher order build
+## process, if such exists.
+####
+Return('utilsEnv')
