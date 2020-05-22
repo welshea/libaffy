@@ -1,0 +1,371 @@
+-- TODO, NOT YET IMPLEMENTED --
+remove --bioconductor-compatability flag from all programs, since
+    it does not really work anymore
+I deprecated it in v2.0, and it's even more divergent now, so time to remove it
+This seems appropriate for a v2.2.0 release anyways ^_^
+
+I may also want to change the output of findmedian a little to make the median sample easier to parse
+    Move RMSD above median CEL file, print new line with median CEL file
+    this should "mostly" maintain backwards compatibility,
+    with minor differences to avg RMSD parsing (if anyone ever uses the avg RMSD,
+    which I don't)
+Also disable automatically looking for .CEL files in the current directory
+Change the top left column header to something fixed, such as Identifier,
+    rather than the output file name, which is quite annoying
+Treat zeroes as missing data and output blank "" instead of zero
+    then default to log2 output?  This will actually break my own scripts....
+
+2020-05-22:
+mempcpy.c, strcasecmp.c, strndup.c: check config.h for presence of functions
+
+2020-05-16:
+affy-apps/findmedian.c: add -o option to output to file instead of STDOUT
+
+
+2020-05-16:
+libaffy/.../iron_generic.c: change median polish to Tukey's Bi-weight probeset
+                            summarization; change does not actually affect results,
+                            since 1:1 probeset:probe
+
+
+2020-01-10:
+libaffy/.../iron_generic.c: print GlobalFitLine header with --iron-untilt,
+                            do not print GlobalScale header unless with --iron-global-scaling
+
+
+2019-10-15:
+iron_generic.c: --floor-to-min option is recognized as a valid flag now
+                added --floor-non-zero-to-one flag
+
+2019-10-11
+pairwise_norm.c: print GlobalFitLine linear fit (--rnaseq) stats to stderr,
+                 may be useful for sample QC similar to GlobalScale (--proteomics)
+                 there are still no column headers printed...
+iron_generic.c:  --rnaseq now enabled --iron-condense-training, improves fits by minimizing contribution from quantized low read counts
+
+2019-09-12
+*.c, *.h:     rename min() and max() to min_macro() and max_macro() to avoid
+               conflicts with other installed libraries on some Windows systems
+              accidentally destroyed all historical file timestamps in the process...
+list_files.c: fixed typo in WIN32 list_files(), "struct new" should be a pointer
+
+
+2019-08-30
+SCons*: various minor changes for python 2/3 compatability
+        change SVN version code to emit build date/time instead
+
+
+2019-08-14
+iron_norm.c: Fixed potential incorrect use of CEL-embedded masks when used in pm-only mode.
+   This would only occur if the "rma" binary was run with --norm-iron *and* the CEL file contained non-zero masks, both of which are uncommon.
+   (I really should just remove pairwise support from the "rma" program entirely, to force using the "iron" program instead)
+   The x,y position of the very last probe was used for masking all probes, so
+    in the unlikely event that the very last probe was masked, all probes were
+    removed from iron training (software would probably crash somewhere...),
+    otherwise a few points were not masked that should have been.  So, in these
+    rare instances, there may have been a few masked probes that were included
+    in the initial set of training points prior to iterative rank pruning,
+    which would then probably be quickly discarded due to being rank outliers,
+    so likely not much impact at all.
+various: minor edits to squash many -Wall warnings, should not have any impact on existing code flow
+edited Sconstruct files to throw most warnings with cflags=optimize (used in make.sh),
+    to avoid future OSX compilation issues due to not finding and addressing them
+deleted long unused (and bugged) chip_distance.c
+
+
+
+libaffy-2.1.9.1.tar.gz [Released 2019-08-13]
+
+2019-08-13
+various:      changed a few unsigned char strings to char so it builds under OSX again
+findmedian.c: print the value of average RMSD, rather than the floating point value of the address of its pointer
+
+
+
+libaffy-2.1.9.tar.gz [Released 2019-08-13]
+
+agilent_to_spreadsheet.pl: handle more ArrayExpress-corrupted "raw" file issues, such as different headers and "null" ControlType
+
+2019-07-19
+findmedian.c, correlation.c: fix potential overflow/underflow of Pearson correlations on very large datasets
+
+2019-05-22
+findmedian.c:         fix crash when --probesets is used; the cdf pointer the new control probeset check needed wasn't initialized
+load_text_cdf_file.c: work around more broken control probeset definitions in official (but officially unsupported) HuEx-1_0-st-v2.text.cdf
+various:              added support for --ignore-chip-mismatch flag; does not abort when multiple different chip types are detected; use only when the chip type stored in the CEL file is known to be incorrect
+make_clean.sh:        comment out datExtractor line
+
+
+
+libaffy-2.1.8.tar.gz [Released 2019-04-25]
+
+2019-04-25
+datExtractor is now officially unsupported and has been commented out of the build system.
+If anyone still uses it, please email me (eric.welsh@moffitt.org) with some example inputs and I can work
+on updating it.
+
+2019-03-19
+changelog.txt: fixed 2.7.1 and 2.7.1.x release dates (they were 3 years too early...)
+
+2019-03-15
+iron, iron_generic: changed --iron-condense-training to only apply to probesets,
+                     due to quantization of low-end probes (probesets become more continuous).
+                    I recommend using this flag for chips where most of the probes are dark / not expressed,
+                     such as the Affymetrix miRNA-4.0 array.
+                    This flag should also be used with iron_generic on mass spec data, where
+                     many rows have identical values due to shared spectra (it is one of several flags set with --proteomics).
+                    I am tempted to make this the default setting for CEL files, as it
+                    greatly helps the rare datasets where it is needed, and limited testing
+                    shows that it doesn't hurt "regular" CEL fles (since there generally
+                    aren't any identical points after Tukey's bi-weight probeset summarization).
+                    Median polish *does* generate quite a few identical valued probesets,
+                    but even so, regular chips do not appear to be affected much by using this flag.
+                    It is only *deeply dark* chips, such as the miRNA 4.0 array, that benefit greatly.
+                    I need more testing to feel comfortable changing the default setting, though.
+                    Also, it might be dangerious to make it the default setting for
+                    iron_generic --microarray, since someone may use it on highly
+                    quantized data where it may harm the normalization.  Then we'd
+                    have different defaults for iron and iron_generic, which is undesirable
+                    and counter to user expectations.  Best keep it not the default for now.
+iron_generic: normalize probesets instead of probes so that --iron-condense-training
+               behaves the same as in last version; resulting output is identical to previous version.
+
+2019-03-14
+iron: finished implementing exclusions/spikeins for iron program
+      (the flags only did anything in findmedian and iron_generic before)
+
+2019-03-13
+various: Improved/added ignoring AFFX/control probes/probesets during findmedian, IRON, and quantile normalization.
+         Quantile normalization includes them, findmedian ignores them, and iron ignores them during normalization training (they are still normalized).
+         NOTE -- this will likely cause minor differences in output data !!
+
+2018-10-22
+load_binary_cdf_file.c: fix segfault if loading a binary CDF file where 1:many probe:probesets occurs
+mean_normalization.c: --norm-mean normalization now handles 1:many probe:probesets correctly (newer chips such as hta2, exon arrays, etc.)
+rma_background_correct.c: handle 1:many probe:probesets for pm-only memory saving optimization (currently not used for 1:many chips)
+findmedian.c: fix segfault with --probesets flag and default no exclusions or spikeins used
+load_text_cdf_file.c: support broken BrainArray CDF files where the CDF
+ file claims there are MM probe provided for a probeset, yet no MM probes are
+ provided for that probeset (number of cells is 2x what it should be)
+
+
+
+libaffy-2.1.7.1.tar.gz [Released 2018-08-27]
+
+2018-08-27
+load_binary_cdf_file.c: fixed various AFFY_ERROR return values
+
+
+
+libaffy-2.1.7.tar.gz [Released 2018-08-23]
+
+2018-07-18
+various: Inserted Log2Scale column into GlobalScale stderr messages
+various: changed wording of various "chip" messages to "sample" messages
+
+2018-06-01
+Added --iron-exclusions=filename flag to specify the list of probesets to
+ exclude during the training step of IRON normalization.  Useful for when
+ there are a few samples that are contamintated with a secondary distribution
+ that is strong enough for IRON to pick the "wrong" distribution to train off
+ of (it is higher density, but it isn't the distribution that the "good"
+ samples have).
+
+2017-07-19
+Fixed long-standing bugs in binary CDF file support (it would crash on modern binary CDF files).
+The official Affymetrix CDF file for HG-U219 (used for GDSC cell lines) is binary, and now works.
+
+2017-02-01
+iron, iron_generic: fixed some command line options to not print bogus single letter shortcuts (work around some issues with the argp functions)
+
+2017-01-10
+findmedian: fixed --meancenter so it actually performs mean centering, rather than doing nothing
+            changed missing data handling so that --meancenter and --pearson work correctly with --ignore-weak
+            changed --pearson distance from [1-r] to [sqrt(0.5*(1-r))], which satisfies triangle inequality
+            ** With these fixes, I now recommend using --pearson for mass spec data, such as proteomics or metabolomics **
+2017-10-05
+edited usage text to indicate --iron-no-condense-training is the default
+
+2017-10-04
+added --iron-condense-training flag, iron_generic --proteomics now enables it by default
+Condensing identical X,Y points prior to IRON iterative rank order pruning and
+curve fitting results in better fits when there are many points with duplicate
+values (as often happens when proteomics software emits many rows for the same
+peptide, one for each different protein it maps to).
+
+2016-11-15:
+agilent_to_spreadsheet.pl
+added support for ArrayExpress mangled files
+added support for mixed 2-channel and 1-channel files in the same analysis
+
+2016-08-19:
+libaffy/halloc/align.h, libaffy/halloc/halloc.c: renamed max_align_t to
+ halloc_max_align_t so that it builds on OSX with clang and Xcode
+ (clang/XCode defined their own conflicting max_align_t).
+
+2016-02-06
+%lf/%f, %ld/%d mis-match issues affecting GlobalScale stderr statistics printing
+
+2015-10-22:
+findmedian: no longer crashes with --ignore-weak (default) combined with --pearson;
+            had been broken since missing values support was added
+
+2015-09-23
+iron_generic
+libaffy/mas5/iron_norm.c
+affy_pairwise_normalization()
+preserve input 0's as 0's after normalization
+
+
+
+libaffy-2.1.6.tar.gz [Released 2015-08-12]
+
+    will now compile on OSX 10.10 (Clang LLVM)
+    will now compile on latest Cygwin + MinGW32 combination: i686-pc-mingw32-gcc v4.7.3
+    (older gcc v3.x -mno-cygwin compilers no longer supported)
+    added scons cflags_bundle=datextractor for easier building of datExtractor
+    (defines STORE_CEL_QC, which causes additional memory overhead in the other programs)
+    added additional initializations to affy_rma_set_defaults()
+    which resulted in corrected printing of settings used in the "rma" program
+    (program exhibited correct default behavior, such as enabling quantile normalization, but default settings were not printed correctly)
+    findmedian.c: fixed --nolog2 flag bug
+    (it was not previously applying to --spreadsheet mode)
+    agilent_to_spreadsheet.pl:
+    corrections to comment text at the top of the file,
+    more intelligent control probe skipping,
+    spots found to be bad in one channel are now flagged as bad in the other channel as well
+    (since the physical cause is likely to be affecting the other channel, too) 
+
+
+
+libaffy-2.1.5.tar.gz [Released 2014-06-04]
+
+    various major updates to add support for HTA-2 chips and correct bugs with libaffy's handling of exon chips in general
+    (exon chip support still requires unofficial CLF/PGF -> CDF converted CDF files)
+    exon chips: assymetric chips (#row != #cols) no longer crash
+    all: -DSTORE_XY_REF and -DSTORE_CEL_QC flags added to load mostly un-used information
+    (these default to undefined to save memory)
+    --iron-global-scaling now prints scale for reference chip (1.0)
+    -DSTORE_CEL_QC defaults to undefined to save memory,
+    however this causes the datExtractor program to no-longer work
+    unless libaffy is recompiled with -DSTORE_CEL_QC
+    bg-rma: better support for missing values / zeroes
+    iron: modified to better deal with weak / missing signals
+    CDF/CEL files: had swapped rows/cols when allocating memory, leading to segfaults on assymetric arrays
+    rma/mas5/iron: abort on corrupt CEL files, unless --salvage is used
+    mas5/iron: most functions that use MM probes will no longer crash or yield strange results when the chip is missing MM probes
+    (they will simply do nothing, since MM probes are missing)
+    mas5/iron: changed mean normalization scaling to use only intensities > 0
+    (this was required so that data with many zeros or missing values would normalize properly)
+    findmedian: floor CEL file data at 1 to prevent NaNs (spreadsheets were already floored)
+    findmedian: --ignore-weak is now default, since it is needed to work well on data with missing values,
+    and has no effect if there are no missing values
+    findmedian: new option --include-weak disables the --ignore-weak option
+    findmedian: divide distances by normalized number of points in comparison
+    (improves median detection when --ignore-weak is used on data with weak/missing signals)
+    affydump: abort cleanly when netcdf is requested but is unavailable
+    iron_generic: added --proteomics option to set appropriate proteomics defaults:
+    --bg-none --unlog --iron-global-scaling --iron-weight-exponent=0 --iron-fit-both-x-y --floor-none
+    iron_generic: added --rnaseq option to set appropriate rnaseq defaults:
+    --bg-none --unlog --iron-untilt --iron-weight-exponent=0 --iron-fit-only-y --floor-none 
+
+
+
+libaffy-2.1.4.tar.gz [Released 2013-11-11]
+
+    New program: agilent_to_spreadsheet.pl; converts Agilent .txt scan files into spreadsheets suitable for input to iron_generic
+    RMA background subtraction: added support for missing values, treat zeroes as missing values
+    IRON: added experimental --iron-fit-both-x-y flag. Fit normalization curve against both X and Y (rather than the default of only Y).
+    Results in "better looking" normalization, but may alter rank orders.
+    iron_generic: added support for > 65536 probes
+    findmedian: fixed crash in --probeset mode introduced in 2.1.2
+    findmedian: added --log2 (default, same as original behavior) and --nolog2 (no transformation) options
+    to transform data prior to distance calculations 
+
+
+
+libaffy-2.1.3.tar.gz [Released 2013-06-13]
+
+    findmedian: fixed crash in --spreadsheet mode introduced in 2.1.2 due to checking for corrupt binary CEL files
+    (there can be no corrupt CEL files if the input is a spreadsheet)
+    Modified RMA background subtraction to not crash when the highest density region is at or near the minimum value in the dataset
+    (I have only seen this occur in datasets with many zero intensities)
+    Modified RMA background subtration to not adjust intensities that are originally zero, leaving them as zero 
+
+
+
+libaffy-2.1.2.tar.gz [Released 2013-05-13]
+
+    The findmedian program now correctly handles input consisting of only a single chip
+    Increased sensitivity of corrupt binary CEL file detection (mask and outlier coordinates out-of-bounds)
+    Fixed errors with importing masks and outliers in Calvin (generic) CEL files, introduced in libaffy v2.0
+    Added non-default --salvage option to attempt to salvage corrupt binary CEL files,
+    for which the intensities appear to be valid (no support for corrupt text CEL files yet).
+    Corrupt masks, outliers, stdev, etc. may indicate corrupt intensities,
+    even if the intensities appear valid, so *USE AT YOUR OWN RISK*. 
+
+
+
+libaffy-2.1.1.tar.gz [Released 2013-04-29]
+
+    Added README_IRON text file with brief description and example usage for IRON normalization
+    Only remove file extentions in output sample names if ending in .CEL or .TXT/.TEXT (case insensitive)
+    iron_generic: No longer checks for CEL files in current directory if no inputs given
+    iron_generic: Renamed --no-normalize option to --norm-none for consistency with the other programs 
+
+
+
+libaffy-2.1.tar.gz [Released 2013-04-01]
+
+    Fixed crash in IRON when median polish was mixed with non-RMA background subtraction
+    Fixed initialization bug that resulted in incorrect IRON normalization within the iron_generic program
+    Fixed issue where IRON could remove all points from the training set when N points is small
+    Fixed rare case of reading beyond IRON fit equation windows bounds, particularly when N points is small
+    Fixed --norm-none to include disabling mean probeset scaling
+    Added --iron-weight-exponent=N option to IRON software to control pseudo-density weighting
+    Added brief README documentation for make-like installation commands
+    Extended IRON --norm-quantile to apply probeset-level quantile normalization
+    Renamed --iron-linear flag to --iron-global-scaling to more properly describe its functionality
+    Text file input is faster, due to fewer reallocs, at minimal cost in extra memory usage 
+
+
+
+libaffy-2.0.tar.gz [Released 2012-09-21]
+
+    Addition of IRON pair-wise normalization and related tools
+    (iron, iron_generic, findmedian, pairgen)
+    Added support for Calvin format binary CEL files
+    Implemented MAS5-style Present/Marginal/Absent calls
+    Preliminary support for Affymetrix whole exon arrays via the text version of the official "unsupported" CDF files
+    (transcript-level probesets are not present in the CDF files)
+    Added support for "incremental RMA", to allow saving an RMA model and apply it to new CEL files
+    Various fixes and features
+    Bioconductor compatibility flag is deprecated and has not been regression tested
+    Switched from Make to SCons (Python-based) build environment
+    (overall gain in portability, the previous Makefiles were brittle)
+    Improved support for compiling under Win32 GCC 3.x Cygwin+MinGW
+    Documentation has not been updated since v1.3 (2006), run programs with --help for current options 
+
+
+
+libaffy-1.3.tar.gz [Released 2006-11-30]
+
+    Added option to ignore AFFX control probes during RMA normalization
+    Added option for quantile normalization to MAS5 
+
+
+
+libaffy-1.2.tar.gz [Released 2006-07-11]
+
+    Improved agreement in MAS5.0 code with actual MAS5.0 results 
+
+
+
+libaffy-1.1.tar.gz [Released 2006-07-07]
+
+    Fixed endian conflict in Linux
+    Strips pathname and extension when writing expressions 
+
+
+
+libaffy-1.0.tar.gz [Released 2005-11-15]
