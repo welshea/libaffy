@@ -1,4 +1,7 @@
 
+/* 2020/08/12:  modified to (hopefully) compile with f->cdf_filename stuff
+ */
+
 #include "affy.h"
 #include "argp.h"
 
@@ -30,6 +33,7 @@ int main(int argc, char **argv)
   int         i, j;
   AFFY_CHIP  *cp;
   AFFY_ERROR *err = NULL;
+  AFFY_COMBINED_FLAGS flags;
 
 #ifndef STORE_CEL_QC
   fprintf(stderr, "Error: You must recompile with -DSTORE_CEL_QC for datExtractor to work.\n");
@@ -41,12 +45,16 @@ int main(int argc, char **argv)
   
   err = affy_get_default_error();
 
+  affy_rma_set_defaults(&flags);
+  affy_mas5_set_defaults(&flags);
+
   argp_parse(&argp, argc, argv, 0,0,0);
 
   /* Try to load data. Errors should result in dying. */
   cp = calloc(1, sizeof(AFFY_CHIP));
   cp->dat = affy_load_dat_file(file, err);
-  cp->cdf = affy_load_cdf_file(cp->dat->probe_array_type, NULL, err);
+  cp->cdf = affy_load_cdf_file(cp->dat->probe_array_type,
+                               NULL, flags, err);
 
   /* Identify a probeset */
   for (i = 0; probeset_list[i] != NULL; i++)
