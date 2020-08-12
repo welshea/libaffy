@@ -40,7 +40,8 @@ void affy_write_probe_values(AFFY_CHIPSET *cs,
                            err);
 
   /* print header */
-  fprintf(values_file, "%s\t", filename);
+  /* fprintf(values_file, "%s\t", filename); */
+  fprintf(values_file, "%s\t", "ProbeID");
   for (c_idx = 0; c_idx < cs->num_chips; c_idx++)
   {
     fprintf(values_file, "%s", cs->chip[c_idx]->filename);
