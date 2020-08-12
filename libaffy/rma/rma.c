@@ -27,6 +27,7 @@
  *           affy_mostly_free_cel_file(), to allow for corrupt chip
  *           warnings at program end if --salvage was used (EAW)
  * 05/22/19: --ignore-chip-mismatch support (EAW)
+ * 08/12/20: pass flags to affy_create_chipset() (EAW)
  *
  **************************************************************************/
 
@@ -118,7 +119,7 @@ AFFY_CHIPSET *affy_rma(char **filelist, AFFY_COMBINED_FLAGS *f,
     max_chips++;
 
   /* Create structure */
-  result = affy_create_chipset(max_chips, chip_type, f->cdf_directory, err);
+  result = affy_create_chipset(max_chips, chip_type, f->cdf_directory, f, err);
   AFFY_CHECK_ERROR_GOTO(err, cleanup);
 
   temp = affy_clone_chipset(result, err);
