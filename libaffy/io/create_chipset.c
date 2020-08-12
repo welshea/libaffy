@@ -23,6 +23,7 @@
  * 02/25/15: set cdf->no_mm_flag in create_blank_generic_cdf() (EAW)
  * 03/15/19: generic cdf: allocate and initialize cdf->seen_xy (EAW)
  * 08/13/19: fix AFFY_HANDLE_ERROR_VOID where AFFY_HANDLE_ERROR needed (EAW)
+ * 08/12/20: pass flags to affy_create_chipset() (EAW)
  *
  **************************************************************************/
 
@@ -42,7 +43,8 @@
  */
 AFFY_CHIPSET *affy_create_chipset(unsigned int max_chips,
                                   char *chip_type,
-                                  char *cdf_hint, 
+                                  char *cdf_hint,
+                                  AFFY_COMBINED_FLAGS *f,
                                   AFFY_ERROR *err)
 {
   AFFY_CHIPSET *cs;
@@ -62,7 +64,7 @@ AFFY_CHIPSET *affy_create_chipset(unsigned int max_chips,
   if (cs->chip == NULL)
     AFFY_HANDLE_ERROR_GOTO("calloc failed", AFFY_ERROR_OUTOFMEM, err, cleanup);
 
-  cs->cdf = affy_load_cdf_file(chip_type, cdf_hint, err);
+  cs->cdf = affy_load_cdf_file(chip_type, cdf_hint, f, err);
   AFFY_CHECK_ERROR_GOTO(err, cleanup);
   hattach(cs->cdf, cs);
 
