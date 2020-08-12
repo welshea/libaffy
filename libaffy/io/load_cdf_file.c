@@ -23,6 +23,7 @@
  * 03/10/14: #ifdef out cdf->xy_ref code to save memory (EAW)
  * 03/14/14: updated to deal with exon arrays (EAW)
  * 06/01/18: change cdf malloc to calloc, so it is initialized to zeroes (EAW)
+ * 08/12/20: store full path to CDF file in flags, so we can print later (EAW)
  *
  **************************************************************************/
 
@@ -146,7 +147,9 @@ cleanup:
  * The parameter is a chip_type as defined by the CEL file. This should
  * correspond to a cdf file somewhere.
  */
-AFFY_CDFFILE *affy_load_cdf_file(char *chip_type, char *dir, AFFY_ERROR *err)
+AFFY_CDFFILE *affy_load_cdf_file(char *chip_type, char *dir,
+                                 AFFY_COMBINED_FLAGS *f,
+                                 AFFY_ERROR *err)
 {
   char cdf_filename[MAXBUF];
 
@@ -190,6 +193,13 @@ AFFY_CDFFILE *affy_load_cdf_file(char *chip_type, char *dir, AFFY_ERROR *err)
   /* If we got here, can't find it and die */
   AFFY_HANDLE_ERROR("can't locate CDF file", AFFY_ERROR_NOTFOUND, err, NULL);
 
+
 FOUND:
+
+  f->cdf_filename = strdup(cdf_filename);
+  
+  /* continuation of print_flags(), since we cannot know it ahead of time */
+  printf("Path to CDF file:                    %s\n\n", f->cdf_filename);
+
   return (affy_load_cdf_file_byname(cdf_filename, chip_type, err));
 }
