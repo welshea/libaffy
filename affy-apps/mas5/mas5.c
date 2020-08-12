@@ -22,6 +22,8 @@
  * 03/12/13: fixed --norm-none so as not to mean normalize probesets
  * 06/01/18: replaced compare_filename() with central compare_string() (EAW)
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
+ * 08/12/20: change description of --bioconductor-compatability (EAW)
+ * 08/12/20: disable searching current working directory for CEL files (EAW)
  *
  **************************************************************************/
 
@@ -34,6 +36,7 @@
 #include "affy_rma.h"
 #include "argp.h"
 
+#define SEARCH_WORKING_DIR 0
 
 char                 *output_file = "exprs-mas.txt";
 AFFY_COMBINED_FLAGS   flags;
@@ -50,7 +53,7 @@ static struct argp_option options[] = {
   { "norm-quantile",2,0,0,"Quantile normalize probe data" },
   { "bg-none",4,0,0,"Disable background correction" },
   { "directory",'d',"DIR",0,"Use directory as working directory" },
-  { "bioconductor-compatability",5,0,0,"Calculate exprs identical to bioconductor"},
+  { "bioconductor-compatability",5,0,0,"Calculate exprs more similar to bioconductor"},
   { "dump-probes", 'p', "probe_file", OPTION_ARG_OPTIONAL,
     "Write raw probe values to a file" },
   { "gct-output-format",'g',0,0,"Write expressions in GCT format" },
@@ -107,15 +110,25 @@ int main(int argc, char **argv)
 
   argp_parse(&argp, argc, argv, 0, 0, 0);
                 
-  /* If files is NULL, open all CEL files in the current directory */
-  if (filelist == NULL) 
+  /* If files is NULL, open all CEL files in the current working directory */
+  if (filelist == NULL && SEARCH_WORKING_DIR)
     filelist = affy_list_files(directory, ".cel", err);
 
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-	    "no CEL files specified or found in current dir, exiting\n");
+    if (SEARCH_WORKING_DIR)
+    {
+      fprintf(stderr, 
+              "no CEL files specified or found in current working directory, exiting\n");
+    }
+    else
+    {
+      fprintf(stderr, 
+              "no CEL files specified, exiting\n");
+    }
+
+    h_free(mempool);
 
     if (err)
       free(err);
