@@ -44,6 +44,7 @@
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
  * 08/13/19: removed "unsigned" from affy_is_control_string() (EAW)
  * 10/15/19: added affy_floor_probeset_non_zero_to_one() (EAW)
+ * 08/12/20: pass flags to more functions (EAW)
  *
  **************************************************************************/
 
@@ -511,11 +512,12 @@ extern "C"
   void          affy_pool_attach(affy_mempool *child, affy_mempool *parent);
 
   /* File I/O stuff. */
-  AFFY_CDFFILE          *affy_load_cdf_file(char *chip_type, 
-                                            char *dir, 
+  AFFY_CDFFILE          *affy_load_cdf_file(char *chip_type,
+                                            char *dir,
+                                            AFFY_COMBINED_FLAGS *f,
                                             AFFY_ERROR *err);
   AFFY_CDFFILE          *affy_load_cdf_file_byname(char *filename,
-                                                   char *chip_type, 
+                                                   char *chip_type,
                                                    AFFY_ERROR *err);
   void                   affy_load_binary_cdf_file(FILE *fp,
 						   AFFY_CDFFILE *cdf,
@@ -561,6 +563,7 @@ extern "C"
   AFFY_CHIPSET          *affy_create_chipset(unsigned int max_chips,
                                              char *chip_type,
                                              char *cdf_hint,
+                                             AFFY_COMBINED_FLAGS *f,
                                              AFFY_ERROR *err);
   AFFY_CHIPSET          *create_blank_generic_chipset(unsigned int max_chips,
                                                       unsigned int numprobes,
