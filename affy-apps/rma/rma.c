@@ -27,6 +27,8 @@
  * 08/05/11: Add MM subtraction flag (EAW)
  * 06/01/18: replaced compare_filename() with central compare_string() (EAW)
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
+ * 08/12/20: change description of --bioconductor-compatability (EAW)
+ * 08/12/20: disable searching current working directory for CEL files (EAW)
  *
  **************************************************************************/
 
@@ -38,6 +40,8 @@
 #include "affy_mas5.h"
 #include "affy_rma.h"
 #include "argp.h"
+
+#define SEARCH_WORKING_DIR 0
 
 char     *output_file   = "exprs-rma.txt";
 char     *affinity_file = "affinities-rma.txt";
@@ -96,7 +100,7 @@ static struct argp_option options[] = {
   { "use-mm-subtraction",13,0,0,"Subtract MM from PM signal"},
   { "no-mm-subtraction",14,0,0,"Do NOT subtract MM from PM signal"},
 #endif
-  { "bioconductor-compatability",15,0,0,"Calculate exprs identical to bioconductor"},
+  { "bioconductor-compatability",15,0,0,"Calculate exprs more similar to bioconductor"},
 #if UNSUPPORTED
   { "normalize-before-bg",16,0,0,"Normalize before background subtraction (only with bg-rma)" },
 #endif
@@ -139,21 +143,33 @@ int main(int argc, char **argv)
     fprintf(stderr, "Error: probe affinities or mean values cannot be "
             "simultaneously saved and dumped\n");
 
+    h_free(mempool);
+
     if (err)
       free(err);
 
     exit(EXIT_FAILURE);
   }
 
-  /* If files is NULL, open all CEL files in the current directory */
-  if (filelist == NULL) 
+  /* If files is NULL, open all CEL files in the current working directory */
+  if (filelist == NULL && SEARCH_WORKING_DIR)
     filelist = affy_list_files(directory, ".cel", err);
 
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-            "no CEL files specified or found in current dir, exiting\n");
+    if (SEARCH_WORKING_DIR)
+    {
+      fprintf(stderr, 
+              "no CEL files specified or found in current working directory, exiting\n");
+    }
+    else
+    {
+      fprintf(stderr, 
+              "no CEL files specified, exiting\n");
+    }
+
+    h_free(mempool);
 
     if (err)
       free(err);
