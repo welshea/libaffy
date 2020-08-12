@@ -18,6 +18,8 @@
  * 03/11/11: Changed mean to geometric mean (EAW)
  * 03/11/11: Abort on chip load failure (EAW)
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
+ * 08/12/20: disable searching current working directory for CEL files (EAW)
+ * 08/12/20: pass flags to affy_create_chipset() (EAW)
  *
  **************************************************************************/
 
@@ -25,6 +27,8 @@
 
 #include "affy.h"
 #include "argp.h"
+
+#define SEARCH_WORKING_DIR 0
 
 AFFY_COMBINED_FLAGS   flags;
 char                 *output_file   = "median.CEL";
@@ -88,15 +92,24 @@ int main(int argc, char **argv)
   flags.bioconductor_compatability = false;
   argp_parse(&argp, argc, argv, 0, 0, 0);
 
-  /* If files is NULL, open all CEL files in the current directory */
-  if (filelist == NULL) 
+  /* If files is NULL, open all CEL files in the current working directory */
+  if (filelist == NULL && SEARCH_WORKING_DIR)
     filelist = affy_list_files(directory, ".cel", err);
 
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-	    "no CEL files specified or found in current dir, exiting\n");
+    if (SEARCH_WORKING_DIR)
+    {
+      fprintf(stderr, 
+              "no CEL files specified or found in current working directory, exiting\n");
+    }
+    else
+    {
+      fprintf(stderr, 
+              "no CEL files specified, exiting\n");
+    }
+
     goto cleanup;
   }
 
@@ -111,7 +124,7 @@ int main(int argc, char **argv)
   hattach(chip_type, mempool);
 
   /* Create temp chipset */
-  cs = affy_create_chipset(1, chip_type, cdf_directory, err);
+  cs = affy_create_chipset(1, chip_type, cdf_directory, &flags, err);
   AFFY_CHECK_ERROR_GOTO(err, cleanup);
 
   temp = affy_clone_chipset(cs, err);
