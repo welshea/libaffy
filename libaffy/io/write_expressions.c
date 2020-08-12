@@ -19,12 +19,15 @@
  * 03/14/08: New error handling scheme (AMH)
  * 09/16/10: Add support for P/A calls (EAW)
  * 10/19/10: Add unlog option (AMH)
+ * 08/12/20: use ProbeID as top-left header instead of output filename (EAW)
+ * 08/12:20: if log/unlog transform, print missing (original 0) data as blanks (EAW)
  *
  **************************************************************************/
 
 #include "affy.h"
 #include "utils.h"
 #include "affy_mas5.h"
+#include "math.h"
 
 void affy_write_expressions(AFFY_CHIPSET *c, 
                             char         *filename, 
@@ -35,6 +38,7 @@ void affy_write_expressions(AFFY_CHIPSET *c,
   int          ret;
   FILE        *fp;
   double       log2 = log(2.0);
+  int          missing;
 
   assert(filename != NULL);
   assert(c        != NULL);
@@ -48,7 +52,8 @@ void affy_write_expressions(AFFY_CHIPSET *c,
     AFFY_HANDLE_ERROR_VOID("couldn't open output file", AFFY_ERROR_IO, err);
 
   /* Print the header first */
-  if (fprintf(fp, "%s\t", filename) < 0)
+  /* if (fprintf(fp, "%s\t", filename) < 0) */
+  if (fprintf(fp, "%s\t", "ProbeID") < 0)
   {
     fclose(fp);
     AFFY_HANDLE_ERROR_VOID("I/O error writing expressions", 
@@ -106,6 +111,11 @@ void affy_write_expressions(AFFY_CHIPSET *c,
     for (n = 0; n < c->num_chips; n++) 
     {
       double data = c->chip[n]->probe_set[i];
+
+      /* assume a value this close to zero is supposed to be zero */
+      missing = 0;
+      if ((log_flag || unlog_flag) && fabs(data) < 1E-14)
+        missing = 1;
       
       /* preserve missing data */
       if (data)
@@ -116,8 +126,17 @@ void affy_write_expressions(AFFY_CHIPSET *c,
           data = log(data) / log2;
       }
       
-      if (fprintf(fp, "\t%f", data) < 0)
-        goto err;
+      /* print blank (missing) for log2 of zero */
+      if (missing)
+      {
+        if (fprintf(fp, "\t") < 0)
+          goto err;
+      }
+      else
+      {
+        if (fprintf(fp, "\t%f", data) < 0)
+          goto err;
+      }
 
       if (print_pa)
       {
