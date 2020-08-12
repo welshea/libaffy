@@ -23,6 +23,7 @@
  * 11/19/10: Pass flags to affy_median_polish() (EAW)
  * 04/06/11: HACK -- Added affy_illumina() entry point (EAW)
  * 03/13/19: add estimate_global_bg_sub() (EAW)
+ * 08/12/20: add cdf_filename (EAW)
  *
  **************************************************************************/
 
@@ -45,6 +46,9 @@ typedef struct affy_rma_flag_struct
 {
   /** (.) Default location to look for CDF file */
   char *cdf_directory;
+  
+  /* full path to CDF file */
+  char *cdf_filename;
 
 	/** (true) Run background correction */
   bool use_background_correction;
