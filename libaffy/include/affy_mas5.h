@@ -20,6 +20,7 @@
  * 09/16/10: Add support for P/A calls (EAW)
  * 10/14/10: Pairwise normalization (EAW)
  * 10/22/10: Use new AFFY_COMBINED_FLAGS instead of AFFY_MAS5_FLAGS (EAW)
+ * 08/12/20: add cdf_filename (EAW)
  *
  **************************************************************************/
 
@@ -42,6 +43,9 @@ typedef struct affy_mas5_flag_struct
 {
   /** (.) Default location to look for CDF file */
   char *cdf_directory;
+
+  /* full path to CDF file */
+  char *cdf_filename;
 
   /** (true) Run MAS5.0 background correction */
   bool use_background_correction;
