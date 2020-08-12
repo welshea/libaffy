@@ -43,10 +43,22 @@
  * 08/13/19: fixed printing of avg_rmsd to not print the pointer address
  * 04/01/20: fixed segfault with --include-weak introduced 10/23/18
  * 05/22/20: add -o option to write to a file, rather than STDOUT
+ * 07/10/20: fopen() as "w" rather than "wt", as "wt" is not standard syntax
+ * 08/03/20: add output buffering and #include <stdlib.h> in attempt to make
+ *           file output happy when compiled with emcc (Emscripten), neither
+ *           should matter or make any difference...
+ * 08/12/20: move Average RMSD line, print additional median sample line;
+ *           should make it easier to parse median sample, while still
+ *           maintaining backwards comptability (original line is still the
+ *           2nd to last line).  It only breaks anything that required the
+ *           Average RMSD line to be the last line (it is now 3rd to last).
+ * 08/12/20: disable searching current working directory for CEL files (EAW)
+ * 08/12/20: pass flags to affy_create_chipset() (EAW)
  *
  **************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
@@ -57,6 +69,7 @@
 
 #define MIN_VALUE 1
 #define MISSING -FLT_MAX
+#define SEARCH_WORKING_DIR 0
 
 AFFY_COMBINED_FLAGS   flags;
 char                 *directory     = ".";
@@ -426,7 +439,8 @@ int pairgen_find_median_chip_distance(float **all_points,
                      char **sample_names, double *rmsd,
                      double *avg_rmsd, AFFY_ERROR *err)
 {
-  FILE        *outfile = stdout;    /* default to stdout */
+  FILE        *outfile = NULL;
+  char        *buffer_out = NULL;
   affy_int32  i, j, point_idx;
   double      *distances = NULL;
   double     **distance_rows = NULL;
@@ -448,7 +462,7 @@ int pairgen_find_median_chip_distance(float **all_points,
   if (outfile_name)
   {
     /* open as text, so it will translate EOL automatically */
-    outfile = fopen(outfile_name, "wt");
+    outfile = fopen(outfile_name, "w");
 
     if (!outfile)
     {
@@ -458,6 +472,19 @@ int pairgen_find_median_chip_distance(float **all_points,
       return 1;
     }
   }
+  else
+  {
+    outfile = stdout;
+  }
+
+  /* we shouldn't need buffering for efficiency, but Emscripten is breaking
+   * on file output *only* in this program, and *only* when compiled with
+   * Emscripten, and this is one of the last differences between this and
+   * other working programs I have left to try to magically make Emscripten
+   * happy.
+   */
+  buffer_out = (char *) malloc(1048576 * sizeof(char));
+  setvbuf(outfile, buffer_out, _IOFBF, 1048576);
 
   if (opt_ignore_weak)
     fprintf(stderr, "Ignoring points with weak values\n");
@@ -801,15 +828,20 @@ int pairgen_find_median_chip_distance(float **all_points,
   *avg_rmsd = average;
 
 
+  fprintf(outfile, "Average RMSD:\t%f\n", *avg_rmsd);
   fprintf(outfile, "Median CEL:\t%d\t%f\t%s\t%f\n",
           best_chip, *rmsd, sample_names[best_chip], means_sample[best_chip]);
-  fprintf(outfile, "Average RMSD:\t%f\n", *avg_rmsd);
+  fprintf(outfile, "%s\n", sample_names[best_chip]);
 
+  fclose(outfile);
+  free(buffer_out);
 
   return best_chip;
 
 
 cleanup:
+  if (outfile) fclose(outfile);
+  if (buffer_out)  free(buffer_out);
   *rmsd = 999999;
   h_free(mempool);
 
@@ -865,15 +897,24 @@ int main(int argc, char **argv)
 
   argp_parse(&argp, argc, argv, 0, 0, 0);
 
-  /* If files is NULL, open all CEL files in the current directory */
-  if (filelist == NULL) 
+  /* If files is NULL, open all CEL files in the current working directory */
+  if (filelist == NULL && SEARCH_WORKING_DIR)
     filelist = affy_list_files(directory, ".cel", err);
 
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-            "no CEL files specified or found in current dir, exiting\n");
+    if (SEARCH_WORKING_DIR)
+    {
+      fprintf(stderr, 
+              "no CEL files specified or found in current working directory, exiting\n");
+    }
+    else
+    {
+      fprintf(stderr, 
+              "no input files specified, exiting\n");
+    }
+
     goto cleanup;
   }
 
@@ -953,7 +994,7 @@ int main(int argc, char **argv)
     hattach(chip_type, mempool);
 
     /* Create temp chipset */
-    cs = affy_create_chipset(1, chip_type, cdf_directory, err);
+    cs = affy_create_chipset(1, chip_type, cdf_directory, &flags, err);
     AFFY_CHECK_ERROR_GOTO(err, cleanup);
 
     temp = affy_clone_chipset(cs, err);
@@ -1155,7 +1196,7 @@ int main(int argc, char **argv)
     hattach(chip_type, mempool);
 
     /* Create temp chipset */
-    cs = affy_create_chipset(1, chip_type, cdf_directory, err);
+    cs = affy_create_chipset(1, chip_type, cdf_directory, &flags, err);
     AFFY_CHECK_ERROR_GOTO(err, cleanup);
 
     temp = affy_clone_chipset(cs, err);
@@ -1324,6 +1365,9 @@ int main(int argc, char **argv)
 
   if (opt_spreadsheet_flag == 0)
     print_corrupt_chips_to_stderr(cs);
+
+  /* everything OK so far, exit 0 */
+  status = 0;
 
 cleanup:  
   if (cs)
