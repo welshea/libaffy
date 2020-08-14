@@ -16,32 +16,123 @@ pairgen still expect the input to be unlogged.
 
 
 
-Common example usage situations are given below:
+*** Example workflows: ***
 
+
+   # normalize CEL files; you can find the median sample in findmedian.txt
+   #
+   findmedian -c cdf_file_dir/ *.CEL > findmedian.txt
+   iron -c cdf_file_dir/ --norm-iron="median_sample.CEL" *.CEL -o output.txt
+
+
+   # normalize Agilent microarray US*.txt files
+   #
+   # agilent_to_spreadsheet.pl will perform local backgrouns subtraction,
+   #  zero out detected bad spots, and shift intensities so that the minimum
+   #  output intensity is 1.0 (this shift is to make sure that there are no
+   #  negative or zero intensities due to local background subtraction).
+   #
+   # iron_generic will then use missing-data-aware RMA background subtraction,
+   #  treating zeroed out fields (bad spots) as missing, to perform
+   #  non-specific background correction.
+   #
+   # Between RMA background correction and IRON normalization, the intensity
+   #  shifts introduced by agilent_to_spreadsheet.pl will be corrected for.
+   #
+   agilent_to_spreadsheet.pl US*.txt > input_data.txt
+   findmedian --spreadsheet input_data.txt > findmedian.txt
+   iron_generic --norm-iron="median_sample" input_data.txt -o output.txt
+
+
+   # normalize RNA-seq data, if we aren't observing any non-linear curvature
+   #  in sample vs. sample log/log plots
+   #
+   findmedian --spreadsheet input_data.txt > findmedian.txt
+   iron_generic --rnaseq --norm-iron="median_sample" input_data.txt -o output.txt
+
+
+   # normalize RNA-seq data that exhibits similar non-linear intensity-
+   #  dependent behavior as microarray data
+   #
+   # note that \ is standard UNIX shell syntax for wrapping a line
+   #
+   findmedian --spreadsheet input_data.txt > findmedian.txt
+   iron_generic --rnaseq --iron-non-linear --iron-weight-exponent=4 \
+      --norm-iron="median_sample" input_data.txt -o output.txt
+
+
+   # normalize proteomics data
+   #
+   findmedian --spreadsheet --pearson input_data.txt > findmedian.txt
+   iron_generic --proteomics --norm-iron="median_sample" input_data.txt -o output.txt
+
+
+   # metabolomics: see discussion towards the end of this file
+   #
+   findmedian --spreadsheet --pearson
+     --probeset-exclusions=unidentified_rowids.txt \
+     --probeset-spikeins=spikein_rowids.txt \
+     pos_ion_mode_input_data.txt > findmedian_pos.txt
+
+   iron_generic --proteomics
+     --iron-exclusions=unidentified_rowids.txt \
+     --iron-spikeins=spikein_rowids.txt \
+     --norm-iron="median_sample" pos_ion_mode_input_data.txt -o output.txt
+
+
+
+
+*** iron_generic meta-flags: ***
+
+ The following meta-flags set several options at once:
+
+   --microarray    (default, if no meta-flags are specified)
+      --bg-rma  --log2    --iron-non-linear     --iron-weight-exponent=4
+      --iron-fit-only-y   --iron-no-condense-training --floor-none
+
+   --rnaseq
+      --bg-none --unlog   --iron-untilt         --iron-weight-exponent=0
+      --iron-fit-only-y   --iron-condense-training    --floor-none
+
+   --proteomics
+      --bg-none --unlog   --iron-global-scaling --iron-weight-exponent=0
+      --iron-fit-both-x-y --iron-condense-training    --floor-none
+
+
+
+
+*** Other common example use cases: ***
 
 Find median CEL file at the probe level, when memory usage is not a concern:
-    findmedian -c cdf_file_dir/ *.CEL > findmedian.txt
+   findmedian -c cdf_file_dir/ *.CEL > findmedian.txt
 
 Find median CEL file at the probeset level, when datasets are VERY large:
-    findmedian -c cdf_file_dir/ --probesets *.CEL > findmedian.txt
+   findmedian -c cdf_file_dir/ --probesets *.CEL > findmedian.txt
 
 Find median sample in a spreadsheet of unlogged intensity data:
-    findmedian --spreadsheet spreadsheet.txt > findmedian.txt
+   findmedian --spreadsheet input_data.txt > findmedian.txt
 
 Find median sample in a spreadsheet of unlogged proteomics data, where
-missing values are reported as blanks or zeroes:
-    findmedian --spreadsheet --ignore-weak spreadsheet.txt > findmedian.txt
+we do not observe any negative intensity-dependent effects (aside from
+increased missing data, which is already dealt with appropriately).
+Pearson correlation will give better results than RMSD in these cases:
+   findmedian --spreadsheet --pearson input_data.txt > findmedian.txt
+
+
 
 Extract the median sample from the findmedian.txt output under UNIX/Linux:
-    cat findmedian.txt | grep "^Median CEL:" | cut -f 4
+   cat findmedian.txt | grep "^Median CEL:" | cut -f 4
+
+As of libaffy v2.2, you can also simply use:
+   tail -1 findmedian.txt
 
 
 
 Create a CEL file containing the median intensity for each probeset:
-    pairgen -c cdf_file_dir/ --median *.CEL -o median.CEL
+   pairgen -c cdf_file_dir/ --median *.CEL -o median.CEL
 
 Create a CEL file containing the average intensity for each probeset:
-    pairgen -c cdf_file_dir/ --average *.CEL -o average.CEL
+   pairgen -c cdf_file_dir/ --average *.CEL -o average.CEL
 
 NOTE -- pairgen will generate a CEL file that works with libaffy, but may not
 be valid enough to work with other software packages, such as Affymetrix
@@ -49,11 +140,17 @@ Power Tools or Bioconductor.
 
 
 
+NOTE -- "median_sample.CEL" is enclosed in double-quotes in the examples
+below in case it contains special characters, such as spaces, that have
+special meaning on the UNIX command line.
+
+
+
 Normalize CEL files against the reference chip:
-    iron -c cdf_file_dir/ --norm-iron=median_sample.CEL *.CEL -o output.txt
+   iron -c cdf_file_dir/ --norm-iron="median_sample.CEL" *.CEL -o output.txt
 
 Normalize unlogged sample intensities in a spreadsheet:
-    iron_generic --norm-iron=median_sample spreadsheet.txt *.CEL -o output.txt
+   iron_generic --norm-iron="median_sample" input_data.txt *.CEL -o output.txt
 
 NOTE -- mixing and matching CEL files and spreadsheet data is currently
 unsupported.  Thus, for iron_generic, pairgen cannot be used, and
@@ -65,10 +162,58 @@ spreadsheet.
 Proteomics data exhibits a very different density distribution than
 microarray data, and generally only exhibits global scaling shifts in
 intensities between samples.  Non-specific RNA binding background correction
-should not be applied to proteomics data....  Intensities should be output
-unlogged so that missing values (zeroes) will be preserved as zeroes, rather
-than output as -nan.  '\' indicates wrapping the command line to the next
-line:
+should not be applied to proteomics data or RNA-seq data, since this cannot
+occur in these assays.  Intensities should be output unlogged so that missing
+values (zeroes) will be preserved as zeroes, rather than output as -nan.
+'\' indicates wrapping the command line to the next line:
 
-    iron_generic --norm-iron=median_sample --proteomics spreadsheet.txt -o \
-                 output.txt
+   iron_generic --proteomics --norm-iron="median_sample" input_data.txt -o \
+                output.txt
+
+As of libaffy v2.2, use of the --log2 flag will output original zeroes as
+blanks (originally negative values are still left as NaNs, so it is more
+obvious that unexpected behavior occurred).  Thus, it should be generally
+safe to use the --log2 flag with proteomics and RNA-seq data now (we don't
+expect to encounter any negative values).
+
+
+
+
+*** Special considerations for metabolomics data,    ***
+*** rows/probesets to exclude from various analyses: ***
+
+In general, settings that are appropriate for proteomics are also appropriate
+for metabolomics.  However, there are some additional complexities that should
+be taken into account for metabolomics data, such as spike-ins and unidentified
+peaks.  Spike-ins are unrelated to the biological content of the sample, and
+thus should be excluded from all calculations (including findmedian and
+normalization).  We have observed that unidentified peaks, at least in
+metabolomics data, tend to be enriched for background contaminants, and thus
+would skew the normalization towards normalizing against the background rather
+than the biological signal.  Thus, unidentified peaks should generally be
+ignored during normalization training, but still normalized along with all of
+the other non-spikein peaks.  Once spikein and unidentified metabolites have
+been identified (externally to iron), IRON can read in lists of row identifiers
+(one identifier per row) to handle them appropriately.  NOTE -- positive (+)
+and negative (-) ion mode data should be processed separately, since they are
+separate injections!!
+
+   findmedian --spreadsheet --pearson
+     --probeset-exclusions="unidentified_rowids.txt" \
+     --probeset-spikeins="spikein_rowids.txt" \
+     pos_ion_mode_input_data.txt > findmedian_pos.txt
+
+   iron_generic --proteomics
+     --iron-exclusions="unidentified_rowids.txt" \
+     --iron-spikeins="spikein_rowids.txt" \
+     --norm-iron="median_sample" pos_ion_mode_input_data.txt -o output.txt
+
+
+Although originally implemented to address issues with metabolomics data,
+--iron-exclusions and --iron-spikeins have been extended to be specified at
+the probeset level with the CEL file based "iron" program as well.  The copy
+of each probe associated with the excluded/spikein probesets will be dealt
+with appropriately at the probe level, as well as at the probeset level.  See
+additional notes on probes that belong to multiple probesets, as well as
+probes found in both excluded and spikeins probesets, as discussed in
+libaffy/mas5/iron_norm.c: affy_pairwise_normalization().
