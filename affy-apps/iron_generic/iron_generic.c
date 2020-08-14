@@ -28,6 +28,8 @@
  * 10/15/19: added --floor-non-zero-to-one flag
  * 05/16/20: change median polish to Tukey's Bi-weight probeset summarization
  *           change does not actually affect results, since 1:1 probeset:probe
+ * 08/12/20: change description of --bioconductor-compatability (EAW)
+ * 08/12/20: changed error message for no input files specified (EAW)
  *
  **************************************************************************/
 
@@ -91,7 +93,7 @@ static struct argp_option options[] = {
   { "bg-iron",11,0,0,"IRON Background-correct expression" },
 #endif
   { "probe-tab",12,"file.probe_tab",OPTION_ARG_OPTIONAL,"Probe seqs for sequence-specific background" },
-  { "bioconductor-compatability",13,0,0,"Calculate exprs identical to bioconductor"},
+  { "bioconductor-compatability",13,0,0,"Calculate exprs more similar to bioconductor"},
 #if UNSUPPORTED
   { "normalize-before-bg",14,0,0,"Normalize before background subtraction (only with bg-rma)" },
 #endif
@@ -118,6 +120,7 @@ static struct argp_option options[] = {
   { "iron-spikeins",'S',"SPIKEINSFILE",0,"File with probesets, usually spikeins, to be left unnormalized" },
   { "bg-global",135,0,0,"Global background subtraction" },
   { "floor-non-zero-to-one",136,0,0,"Floor final non-zero values to 1.0" },
+  { "microarray",137,0,0,"Use defaults suitable for microarrays (default)" },
   {0}
 };
 
@@ -153,11 +156,11 @@ int main(int argc, char **argv)
   flags.bg_rma                     = true;
   flags.bg_mas5                    = false;
   flags.bg_iron                    = false;
+  flags.bg_global                  = false;
   flags.use_mm_probe_subtraction   = false;
   flags.use_tukey_biweight         = true;
   flags.use_median_polish          = false;
   flags.output_log2                = true;
-  flags.bg_global                  = false;
 
   argp_parse(&argp, argc, argv, 0, 0, 0);
 
@@ -168,6 +171,8 @@ int main(int argc, char **argv)
     fprintf(stderr, "Error: probe affinities or mean values cannot be "
             "simultaneously saved and dumped\n");
 
+    h_free(mempool);
+
     if (err)
       free(err);
 
@@ -177,8 +182,9 @@ int main(int argc, char **argv)
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-            "no CEL files specified or found in current dir, exiting\n");
+    fprintf(stderr, "no input files specified, exiting\n");
+
+    h_free(mempool);
 
     if (err)
       free(err);
@@ -385,6 +391,24 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     case 136:
       flags.floor_to_min_non_zero = false;
       flags.floor_non_zero_to_one = true;
+      break;
+    /* --microarray */
+    case 137:
+      flags.use_background_correction = true;
+      flags.bg_mas5                   = false;
+      flags.bg_rma                    = true;
+      flags.bg_rma_both               = false;
+      flags.bg_iron                   = false;
+      flags.bg_global                 = false;
+      flags.use_mm_probe_subtraction  = false;
+      flags.output_log2 = true;
+      flags.iron_global_scaling_normalization = false;
+      flags.iron_untilt_normalization = false;
+      flags.iron_weight_exponent = 4;
+      flags.iron_fit_both_x_y = false;
+      flags.iron_condense_training = false;
+      flags.floor_to_min_non_zero = false;
+      flags.floor_non_zero_to_one = false;
       break;
     
     case 'd':
