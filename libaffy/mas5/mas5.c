@@ -35,6 +35,9 @@
  * 03/12/14: No longer use any pm[] array stuff, due to exon arrays (EAW)
  * 03/14/19: added support for exclusions and spikeins files (EAW)
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
+ * 08/12/20: pass flags to affy_create_chipset() (EAW)
+ * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
+ *           probe norm (EAW)
  *
  **************************************************************************/
 
@@ -195,7 +198,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
     f->use_mm_probe_subtraction = false;
   }
 
-  result = affy_create_chipset(1, chip_type, f->cdf_directory, err);
+  result = affy_create_chipset(1, chip_type, f->cdf_directory, f, err);
   AFFY_CHECK_ERROR_GOTO(err, cleanup);
 
 
@@ -625,8 +628,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
     AFFY_CHECK_ERROR_GOTO(err, cleanup);
   }
 
-#if 1
-  if (f->use_normalization)
+  if (f->use_normalization && f->normalize_probesets)
   {
     /* quantile probeset normalization */
     if (f->use_quantile_normalization)
@@ -653,7 +655,6 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
 */
     }
   }
-#endif
 
 
   /* floor probeset signal intensity  */
