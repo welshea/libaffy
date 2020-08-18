@@ -23,6 +23,9 @@
  * 06/01/18: added support for probeset exclusions during IRON training (EAW)
  * 03/13/19: added iron_ignore_noise (EAW)
  * 05/22/19: added ignore_chip_mismatch flag (EAW)
+ * 08/12/20: add cdf_filename (EAW)
+ * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
+ *           probe norm (EAW)
  *
  **************************************************************************/
 
@@ -40,6 +43,9 @@ typedef struct affy_combined_flag_struct
 
   /** (.) Default location to look for CDF file */
   char *cdf_directory;
+
+  /* full path to CDF file */
+  char *cdf_filename;
 
   /** (true) Run MAS5.0 background correction */
   bool use_background_correction;
@@ -197,5 +203,8 @@ typedef struct affy_combined_flag_struct
   bool   use_spikeins;
   char   *exclusions_filename;
   char   *spikeins_filename;
+  
+  /* iron program specific options, but affects both iron and quantile norm */
+  bool   normalize_probesets;
 
 } AFFY_COMBINED_FLAGS;
