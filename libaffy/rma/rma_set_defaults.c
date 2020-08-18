@@ -25,6 +25,9 @@
  * 10/04/17: added iron_condense_training (EAW)
  * 06/01/18: added support for probeset exclusions during IRON training (EAW)
  * 09/14/18: added spikeins support, similar to exclusions (EAW)
+ * 08/12/20: add cdf_filename (EAW)
+ * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
+ *           probe norm (EAW)
  *
  **************************************************************************/
 
@@ -47,6 +50,7 @@ void affy_rma_set_defaults(AFFY_COMBINED_FLAGS *f)
   f->means_filename                    = "mean-values.txt";
   f->probe_filename                    = "probe-values.txt";
   f->cdf_directory                     = ".";
+  f->cdf_filename                      = "";
   f->bg_mas5                           = false;
   f->bg_rma                            = true;
   f->bg_rma_both                       = false;
@@ -89,4 +93,5 @@ void affy_rma_set_defaults(AFFY_COMBINED_FLAGS *f)
   f->use_spikeins                      = false;
   f->spikeins_filename                 = NULL;
   f->ignore_chip_mismatch              = false;
+  f->normalize_probesets               = false;
 }
