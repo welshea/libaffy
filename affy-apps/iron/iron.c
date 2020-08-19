@@ -26,6 +26,10 @@
  * 06/01/18: replaced compare_filename() with central compare_string() (EAW)
  * 06/01/18: added support for probeset exclusions during IRON training (EAW)
  * 05/22/19: added --ignore-chip-mismatch
+ * 08/12/20: change description of --bioconductor-compatability (EAW)
+ * 08/12/20: disable searching current working directory for CEL files (EAW)
+ * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
+ *           probe norm (EAW)
  *
  **************************************************************************/
 
@@ -43,6 +47,8 @@
 #include <fenv.h>
 #endif
 
+#define SEARCH_WORKING_DIR 0
+
 char                 *output_file = "exprs-mas.txt";
 AFFY_COMBINED_FLAGS   flags;
 int                   gct_format = 0;
@@ -58,7 +64,7 @@ static struct argp_option options[] = {
   { "norm-quantile",2,0,0,"Quantile normalize probe data" },
   { "bg-none",4,0,0,"Disable background correction" },
   { "directory",'d',"DIR",0,"Use directory as working directory" },
-  { "bioconductor-compatability",5,0,0,"Calculate exprs identical to bioconductor"},
+  { "bioconductor-compatability",5,0,0,"Calculate exprs more similar to bioconductor"},
   { "dump-probes", 'p', "probe_file", OPTION_ARG_OPTIONAL,
     "Write raw probe values to a file" },
   { "gct-output-format",'g',0,0,"Write expressions in GCT format" },
@@ -100,6 +106,8 @@ static struct argp_option options[] = {
 #endif
   { "ignore-chip-mismatch", 137,   0, 0, "Do not abort when multiple chips types are detected" },
   { "iron-exclusions",'x',"EXCLUSIONSFILE",0,"Ignore probesets from EXCLUSIONSFILE during curve fitting" },
+  { "probeset-norm",138,0,0,"Normalize probesets after probe normalization (default)" },
+  { "no-probeset-norm",139,0,0,"Disable probeset normalization after probe normalization" },
   {0}
 };
 
@@ -141,18 +149,29 @@ int main(int argc, char **argv)
   flags.bg_iron                    = false;
   flags.use_mm_probe_subtraction   = false;
   flags.output_log2                = true;
+  flags.normalize_probesets        = true;
   
   argp_parse(&argp, argc, argv, 0, 0, 0);
                 
-  /* If files is NULL, open all CEL files in the current directory */
-  if (filelist == NULL) 
+  /* If files is NULL, open all CEL files in the current working directory */
+  if (filelist == NULL && SEARCH_WORKING_DIR)
     filelist = affy_list_files(directory, ".cel", err);
 
   /* Give up if we have no files to operate on */
   if ((filelist == NULL) || (filelist[0] == NULL))
   {
-    fprintf(stderr, 
-	    "no CEL files specified or found in current dir, exiting\n");
+    if (SEARCH_WORKING_DIR)
+    {
+      fprintf(stderr, 
+              "no CEL files specified or found in current working directory, exiting\n");
+    }
+    else
+    {
+      fprintf(stderr, 
+              "no CEL files specified, exiting\n");
+    }
+
+    h_free(mempool);
 
     if (err)
       free(err);
@@ -358,6 +377,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       break;
     case 137:
       flags.ignore_chip_mismatch = true;
+      break;
+    case 138:
+      flags.normalize_probesets = true;
+      break;
+    case 139:
+      flags.normalize_probesets = false;
       break;
 
     case 'g':
