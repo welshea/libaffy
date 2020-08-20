@@ -1,19 +1,48 @@
--- TODO, NOT YET IMPLEMENTED --
-remove --bioconductor-compatability flag from all programs, since
-    it does not really work anymore
-I deprecated it in v2.0, and it's even more divergent now, so time to remove it
-This seems appropriate for a v2.2.0 release anyways ^_^
 
-I may also want to change the output of findmedian a little to make the median sample easier to parse
-    Move RMSD above median CEL file, print new line with median CEL file
-    this should "mostly" maintain backwards compatibility,
-    with minor differences to avg RMSD parsing (if anyone ever uses the avg RMSD,
-    which I don't)
-Also disable automatically looking for .CEL files in the current directory
-Change the top left column header to something fixed, such as Identifier,
-    rather than the output file name, which is quite annoying
-Treat zeroes as missing data and output blank "" instead of zero
-    then default to log2 output?  This will actually break my own scripts....
+2020-08-18:
+various:        added --probeset-norm and --no-probeset-norm flags to iron program
+affy-apps/iron.c:  iron --norm-quantile --median-polish --no-probeset-norm
+                   yields identical output to the libaffy "rma" program
+                   (the differences between them in previous versions were due
+                   to the iron program always performing and 2nd pass of
+                   normalization at the probeset level)
+
+
+2020-08-14:
+iron_generic.c: added --microarray meta-flag; sets some flags that were
+                already default settings
+README_IRON:    expanded to include some additional examples and
+                newer functionality
+
+
+2020-08-12:
+
+changes to program behavior:
+write_expressions.c: if log/unlog transform, output missing (0) data as blank;
+               due to flooring at various stages of other programs, this
+               should only affect iron_generic output, since there won't be
+               any zero values by the time the other programs call the
+               output function
+various:       output spreadsheets will now use ProbeID as their top-left
+               header label instead of the output filename, which was
+               problematic for writing various other downstream tools
+findmedian.c:  move Average RMSD line, print additional median sample line;
+               should make it easier to parse median sample, while still
+               maintaining backwards comptability (original line is still the
+               2nd to last line).  It only breaks anything that required the
+               Average RMSD line to be the last line (it is now 3rd to last).
+various:       programs will no longer scan current working directory for CEL
+               files if none were specified
+
+minor changes:
+various:       changed --bioconductor-compatability description to better
+               reflect that identical output hasn't been guaranteed for a long
+               time now
+load_cdf_file.c: print path to CDF file as a continuation of print flags
+
+
+2020-07-10:
+findmedian.c: fclose() output file
 
 2020-05-22:
 mempcpy.c, strcasecmp.c, strndup.c: check config.h for presence of functions
