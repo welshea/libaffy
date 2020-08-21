@@ -1,3 +1,8 @@
+2020-08-21:
+various documentation typo corrections
+renamed README_IRON to README, so git will display it
+renamed old README to README_INSTALL so git will display newly renamed README_IRON instead
+
 
 libaffy-2.2.0.tar.gz [Released 2020-08-21]
 
@@ -72,12 +77,12 @@ iron_generic.c: --floor-to-min option is recognized as a valid flag now
 pairwise_norm.c: print GlobalFitLine linear fit (--rnaseq) stats to stderr,
                  may be useful for sample QC similar to GlobalScale (--proteomics)
                  there are still no column headers printed...
-iron_generic.c:  --rnaseq now enabled --iron-condense-training, improves fits by minimizing contribution from quantized low read counts
+iron_generic.c:  --rnaseq now enables --iron-condense-training, improves fits by minimizing contribution from quantized low read counts
 
 2019-09-12
 *.c, *.h:     rename min() and max() to min_macro() and max_macro() to avoid
                conflicts with other installed libraries on some Windows systems
-              accidentally destroyed all historical file timestamps in the process...
+              accidentally destroyed all historical file timestamps in the process..., but I think I was able to restore them afterwards
 list_files.c: fixed typo in WIN32 list_files(), "struct new" should be a pointer
 
 
@@ -99,7 +104,7 @@ iron_norm.c: Fixed potential incorrect use of CEL-embedded masks when used in pm
     which would then probably be quickly discarded due to being rank outliers,
     so likely not much impact at all.
 various: minor edits to squash many -Wall warnings, should not have any impact on existing code flow
-edited Sconstruct files to throw most warnings with cflags=optimize (used in make.sh),
+edited SConstruct files to throw most warnings with cflags=optimize (used in make.sh),
     to avoid future OSX compilation issues due to not finding and addressing them
 deleted long unused (and bugged) chip_distance.c
 
