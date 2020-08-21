@@ -1,4 +1,6 @@
 
+libaffy-2.2.0.tar.gz [Released 2020-08-21]
+
 2020-08-18:
 various:        added --probeset-norm and --no-probeset-norm flags to iron program
 affy-apps/iron.c:  iron --norm-quantile --median-polish --no-probeset-norm
