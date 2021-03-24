@@ -54,6 +54,8 @@
  *           Average RMSD line to be the last line (it is now 3rd to last).
  * 08/12/20: disable searching current working directory for CEL files (EAW)
  * 08/12/20: pass flags to affy_create_chipset() (EAW)
+ * 03/24/21: corrected --ignore-weak description (ignore <= 0, not <= 1)
+ * 03/24/21: add progress indicator for missing data pre-scan
  *
  **************************************************************************/
 
@@ -109,8 +111,8 @@ static struct argp_option options[]  =
 #if 0
   { "unlog2",        27,           0, 0, "Exponentiate input data prior to dist calcs" },
 #endif
-  { "ignore-weak",   28,           0, 0, "Ignore weak intensities (<= 1 un-logged) [default]" },
-  { "include-weak",  29,           0, 0, "Include weak intensities (<= 1 un-logged)" },
+  { "ignore-weak",   28,           0, 0, "Ignore weak intensities (<= 0 un-logged) [default]" },
+  { "include-weak",  29,           0, 0, "Include weak intensities (<= 0 un-logged)" },
   { "ignore-chip-mismatch", 137,   0, 0, "Do not abort when multiple chips types are detected" },
   { "probeset-exclusions",'x',"EXCLUSIONSFILE",0,"Do not load probes in EXCLUSIONSFILE from spreadsheet" },
   { "probeset-spikeins",'S',"SPIKEINSSFILE",0,"Do not load probes in SPIKEINSFILE from spreadsheet" },
@@ -523,10 +525,15 @@ int pairgen_find_median_chip_distance(float **all_points,
       count_rows[i]  = counts + i * max_chips;
     memset(counts, 0, max_chips_squared * sizeof(double));
 
+
+    fprintf(stderr, "Pre-scan pair-wise missing data ");
+
     /* count non-weak points for each reference chip */
     for (i = 0; i < max_chips; i++)
     {
       fptr1 = all_points[i];
+
+      fprintf(stderr, ".");
 
       count = 0;
       for (point_idx = 0; point_idx < num_probes; point_idx++)
@@ -579,6 +586,7 @@ int pairgen_find_median_chip_distance(float **all_points,
           max_count = count;
       }
     }
+    fprintf(stderr, "\n");
   }
   else
   {
