@@ -1,3 +1,8 @@
+2021-03-24:
+findmedian.c:  corrected --ignore-weak description (ignore <= 0, not <= 1),
+               added progress indicator for missing data pre-scan
+
+
 2020-08-21:
 various documentation typo corrections
 renamed README_IRON to README, so git will display it
