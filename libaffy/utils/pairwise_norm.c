@@ -32,6 +32,7 @@
  * 10/11/19: print GlobalFitLine stats to stderr, similar to GlobalScale (EAW)
  *           stats are for the fit line, rather than the scaling adjustments
  *           (opposite direction/interpretation as GlobalScale)
+ * 05/25/21: better handling of empty and near-empty samples (EAW)
  *
  **************************************************************************/
 
@@ -1262,14 +1263,16 @@ void fill_normalization_scales(char *filestem,
         num_both_not_weak++;
     }
   }
- 
-  /* check to see if we are normalizing vs. self */
+
+  /* check to see if we are normalizing vs. self
+   * or if there are no good points
+   */
   for (i = 0; i < num_spots; i++)
   {
     if (fabs(signals1[i] - signals2[i]) > 1E-5)
       break;
   }
-  if (i == num_spots)
+  if (i == num_spots || num_both_not_weak == 0)
   {
     for (i = 0; i < num_spots; i++)
       signals2_scales[i] = 1.0;
@@ -1410,10 +1413,97 @@ void fill_normalization_scales(char *filestem,
     filt1[num_filtered] = filt2[num_filtered] = pair_ptr;
 
     pair_ptr->initial_set_flag = 1;
-       
+
     num_filtered++;
   }
 
+  /* uh oh, no good points left after first pass of filtering;
+   * remove the minimum observed non-weak value and saturation filters
+   */
+  if (num_filtered == 0)
+  {
+    for (i = 0; i < num_spots; i++)
+    {
+      pair_ptr            = signal_pairs + i;
+      pair_ptr->index     = i;
+      pair_ptr->sig2      = signals2[i];
+      pair_ptr->sig1      = signals1[i];
+      pair_ptr->weight    = 0;
+      pair_ptr->n_windows = 0;
+      
+      /* avoid log(0) */
+      if (pair_ptr->sig1 < MIN_SIGNAL)
+      {
+        pair_ptr->sig1 = MIN_SIGNAL;
+      }
+
+      if (pair_ptr->sig2 < MIN_SIGNAL)
+      {
+        pair_ptr->sig2 = MIN_SIGNAL;
+      }
+
+      pair_ptr->log_xy    = log(pair_ptr->sig1 * pair_ptr->sig2);
+
+      /* filter control spots from training set */
+      if (mask_array[i])
+        continue;
+
+      /* skip spots that are extremely dark in either channel */
+#if DO_FLOOR
+      if (pair_ptr->sig1 <= MIN_SIGNAL || pair_ptr->sig2 <= MIN_SIGNAL)
+        continue;
+#endif
+      if (pair_ptr->sig1 <= MIN_SIGNAL && pair_ptr->sig2 > MIN_SIGNAL)
+        continue;
+      if (pair_ptr->sig2 <= MIN_SIGNAL && pair_ptr->sig1 > MIN_SIGNAL)
+        continue;
+#if 0
+      if (pair_ptr->sig1 <= min_sig1 || pair_ptr->sig2 <= min_sig2)
+        continue;
+
+      /* skip spots that are likely saturated in at least one channel */
+      if ((bit16_flag1 && pair_ptr->sig1 >= 64000) ||
+          (bit16_flag2 && pair_ptr->sig2 >= 64000))
+        continue;
+#endif
+
+      /* store initial set of points */
+      filt1[num_filtered] = filt2[num_filtered] = pair_ptr;
+
+      pair_ptr->initial_set_flag = 1;
+
+      num_filtered++;
+    }
+  }
+
+  /* still no training points, exit without normalizing */
+  if (num_filtered == 0)
+  {
+    for (i = 0; i < num_spots; i++)
+      signals2_scales[i] = 1.0;
+   
+    *return_training_frac = 1.0;
+    *return_rmsd = 0.0;
+
+    if (global_scaling_flag)
+      fprintf(stderr, "GlobalScale:\t%s\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
+                      filestem,
+                      1.0, 0.0,
+                      num_not_weak,
+                      num_both_not_weak,
+                      num_not_weak, num_spots,
+                      1.0);
+    else if (f->iron_untilt_normalization)
+      fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\n",
+                      filestem,
+                      1.0, 0.0, 0.0,
+                      num_both_not_weak, num_not_weak, num_spots);
+
+    /* free the memory we've allocated thus far */
+    h_free(mempool);
+
+    return;
+  }
 
   /* condense identical points; they cause too many problems */
   if (condense_training_flag)
@@ -1436,7 +1526,6 @@ void fill_normalization_scales(char *filestem,
     memcpy(filt1, filt2, num_filtered * sizeof(struct signal_pair *));
   }
 
-
   qsort(filt1, num_filtered, sizeof(struct signal_pair *), compare_sort_sig1);
   qsort(filt2, num_filtered, sizeof(struct signal_pair *), compare_sort_sig2);
 
@@ -1451,8 +1540,6 @@ void fill_normalization_scales(char *filestem,
     old_rank_diff_cutoff = rank_diff_cutoff;
     old_num_filtered     = num_filtered;
 
-/* fprintf(stderr, "%d\n", num_filtered); */
-       
     if (old_filt1 == tmp_ptrs1)
     {
       old_filt1 = tmp_ptrs3;
