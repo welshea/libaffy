@@ -1,3 +1,7 @@
+2021-05-25:
+pairwise_norm.c  fix crash on completely or mostly empty/dark samples
+
+
 2021-03-24:
 findmedian.c:  corrected --ignore-weak description (ignore <= 0, not <= 1),
                added progress indicator for missing data pre-scan
