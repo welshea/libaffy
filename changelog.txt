@@ -1,3 +1,9 @@
+2022-12-05:
+agilent_to_spreadsheet.pl:
+  change probe ControlType check to treat "0" as non-control;
+  this should fix some ArrayExpress files that were returning no valid data before
+
+
 2021-05-25:
 pairwise_norm.c  fix crash on completely or mostly empty/dark samples
 
