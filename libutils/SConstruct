@@ -62,7 +62,8 @@ def emit_endian_header(target, source, env):
 txtlog_srcs = glob.glob('logging/txt/*.c')
 
 ## libutils
-srcdirs = ['logging', 'text', 'sorting', 'matrix', 'argp', 'getopt']
+#srcdirs = ['logging', 'text', 'sorting', 'matrix', 'argp', 'getopt']
+srcdirs = ['logging', 'text', 'sorting', 'matrix', 'getopt']
 utils_srcs  = [ glob.glob(x + '/*.c') for x in srcdirs ]
 utils_srcs += Split("""
     utils_ver.c
@@ -159,6 +160,9 @@ if not confCtx.CheckDeclaration('strnlen', '#include <string.h>'):
 
 if not confCtx.CheckDeclaration('strndup', '#include <string.h>'):
     utils_srcs += ['sys/strndup.c']
+
+if not confCtx.CheckDeclaration('argp_parse', '#include <argp.h>'):
+    utils_srcs += [ glob.glob(x + '/*.c') for x in ['argp'] ]
 
 confCtx.Finish()
 
