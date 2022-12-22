@@ -33,6 +33,7 @@
  *           stats are for the fit line, rather than the scaling adjustments
  *           (opposite direction/interpretation as GlobalScale)
  * 05/25/21: better handling of empty and near-empty samples (EAW)
+ * 12/22/22: define M_PI if not already defined; for Ubuntu/Debian (EAW)
  *
  **************************************************************************/
 
@@ -42,6 +43,10 @@
 
 #define MIN_SIGNAL       1E-5
 #define DO_FLOOR         1
+
+#if !defined(M_PI)
+#define M_PI 3.14159265358979323846
+#endif
 
 /* (Unweighted): cisplatin breast subset works best with NO second pass,
  * rank fraction = 0.01, and window fraction = 0.05
