@@ -1,3 +1,6 @@
+2022-12-22:  various minor edits so that it builds on Ubuntu now
+
+
 2022-12-05:
 agilent_to_spreadsheet.pl:
   change probe ControlType check to treat "0" as non-control;
