@@ -19,6 +19,7 @@
  * 10/22/10: Use new AFFY_COMBINED_FLAGS instead of AFFY_RMA_FLAGS
  * 11/16/10: Added ability to reuse calculated median polish affinities
  * 11/19/10: Pass flags for bioconductor compatability (EAW)
+ * 09/05/23: change utils_getline() to fgets_strip_realloc() (EAW)
  *
  **************************************************************************/
 
@@ -33,13 +34,15 @@ static void read_affinities(FILE *infile,
 {
   char *line = NULL, *val  = NULL;
   int   i;
+  int   max_string_len = 0;
 
   assert(infile     != NULL);
   assert(affinities != NULL);
   assert(t          != NULL);
 
   /* Get the t-value. */
-  if ((line = utils_getline(infile)) == NULL)
+  /* if ((line = utils_getline(infile)) == NULL) */
+  if (fgets_strip_realloc(&line, &max_string_len, infile) == NULL)
     AFFY_HANDLE_ERROR_GOTO("failed to parse affinity value from file",
                            AFFY_ERROR_BADFORMAT,
                            err,
@@ -65,7 +68,8 @@ static void read_affinities(FILE *infile,
   {
     int j;
     
-    if ((line = utils_getline(infile)) == NULL)
+    /* if ((line = utils_getline(infile)) == NULL) */
+    if (fgets_strip_realloc(&line, &max_string_len, infile) == NULL)
       AFFY_HANDLE_ERROR_GOTO("failed to parse affinity value from file",
                              AFFY_ERROR_BADFORMAT,
                              err,
@@ -95,7 +99,7 @@ static void read_affinities(FILE *infile,
   return;
 
 cleanup:
-  free(line);
+  if (line) free(line);
 }
 
 /*
@@ -174,7 +178,7 @@ void affy_rma_signal(AFFY_CHIPSET *c, AFFY_COMBINED_FLAGS *f,
   }
   else if (f->use_saved_affinities)
   {
-    aff_file = fopen(f->affinities_filename, "r");
+    aff_file = fopen(f->affinities_filename, "rb");
     if (aff_file == NULL)
       AFFY_HANDLE_ERROR_GOTO("affinities file could not be read",
                              AFFY_ERROR_NOTFOUND,
