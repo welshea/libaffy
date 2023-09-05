@@ -21,6 +21,7 @@
  * 09/11/11: pass mempool to affy_load_exclusions_file()
  * 09/14/18: added affy_load_spikeins_file() (EAW)
  * 01/10/20: print column headers for various stderr output (EAW)
+ * 09/05/23: change utils_getline() to fgets_strip_realloc() (EAW)
  * 
  *
  **************************************************************************/
@@ -617,20 +618,27 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
       FILE *fp;
       char *nl, *err_str;
       int   i = 0;
+      int   max_string_len;
+      
+      nl             = NULL;
+      max_string_len = 0;
 
-      fp = fopen(f->means_filename, "r");
+      fp = fopen(f->means_filename, "rb");
       if (fp == NULL)
         AFFY_HANDLE_ERROR_GOTO("couldn't open saved means file",
                                AFFY_ERROR_NOTFOUND,
                                err,
                                cleanup);
 
-      while ((nl = utils_getline(fp)) != NULL)
+      /* while ((nl = utils_getline(fp)) != NULL) */
+      while (fgets_strip_realloc(&nl, &max_string_len, fp) != NULL)
       {
 	mean[i] = strtod(nl, &err_str);
 	
 	if ((nl == err_str) && (mean[i] == 0))
         {
+          if (nl) free(nl);
+
 	  warn("error parsing mean value from %s, line %d\n", 
                f->means_filename, 
                i);
@@ -642,6 +650,9 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
 
 	i++;
       }
+      fclose(fp);
+      
+      if (nl) free(nl);
 
       if (i != numprobes)
       {
