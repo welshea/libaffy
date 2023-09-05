@@ -17,6 +17,7 @@
  * 04/08/05: Imported/repaired from old libaffy (AMH)
  * 03/18/08: Thread safety improvements (AMH)
  * 09/20/10: Pooled memory allocator (AMH)
+ * 09/05/23: modifications to replace fgets() with EOL-safe function
  *
  **************************************************************************/
 
@@ -33,6 +34,12 @@
 void affy_textio_free(AFFY_TEXTIO *tf)
 {
   assert(tf != NULL);
+  
+  /* free buffer, which was allocated with malloc() instead of h_free() */
+  if (tf->buf)
+    free(tf->buf);
+  tf->buf         = NULL;
+  tf->max_buf_len = 0;
 
   h_free(tf);
 }
@@ -51,9 +58,10 @@ AFFY_TEXTIO *affy_textio_init(FILE *fp, AFFY_ERROR *err)
   if (tf == NULL)
     AFFY_HANDLE_ERROR("malloc failed", AFFY_ERROR_OUTOFMEM, err, NULL);
 
-  tf->skip_read = false;
-  tf->fp        = fp;
-  tf->buf       = h_suballoc(tf, MAXBUF);
+  tf->skip_read   = false;
+  tf->fp          = fp;
+  tf->buf         = calloc(MAXBUF, sizeof(char));   /* don't use h_alloc() */
+  tf->max_buf_len = MAXBUF;   /* needed for fgets_strip_realloc() */
 
   if (tf->buf == NULL)
   {
@@ -76,9 +84,14 @@ char *affy_textio_get_next_line(AFFY_TEXTIO *tf)
   {
     /* A special flag allows us to unget a line */
     if (tf->skip_read)
+    {
       tf->skip_read = false;
-    else if (fgets(tf->buf, MAXBUF, tf->fp) == NULL)
+    }
+    else if (fgets_strip_realloc(&(tf->buf),
+                                 &(tf->max_buf_len), tf->fp) == NULL)
+    {
       return (NULL);
+    }
 
     /* Trim the whitespace */
     p = trim(tf->buf);
