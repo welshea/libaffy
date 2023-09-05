@@ -1,7 +1,7 @@
 
 #ifndef _AFFY_VERSION_H_
 #define _AFFY_VERSION_H_
-#define AFFY_REVISION "build date: 2022-12-22 10:48:58"
+#define AFFY_REVISION "build date: 2023-09-05 19:16:48"
 extern const char affy_version[];
 #endif
 
