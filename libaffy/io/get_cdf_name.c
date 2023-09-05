@@ -19,6 +19,7 @@
  * 10/05/07: Update to use new binary I/O functions (AMH)
  * 03/11/08: New error handling scheme (AMH)
  * 09/20/10: Pooled memory allocator (AMH)
+ * 09/05/23: change fgets() calls to EOL-safe functions (EAW)
  *
  **************************************************************************/
 
@@ -65,11 +66,13 @@ char *affy_get_cdf_name(const char *buf, AFFY_ERROR *err)
  */
 char *affy_get_cdf_name_from_cel(const char *filename, AFFY_ERROR *err)
 {
-  FILE      *fp;
-  affy_int32 int_magic;
-  affy_uint8 byte_magic;
-  char       buf[MAXBUF];
-  char      *result;
+  FILE       *fp;
+  affy_int32  int_magic;
+  affy_uint8  byte_magic;
+  int         max_string_len = 0;
+  char        buf[MAXBUF];
+  char       *fgets_buffer = NULL;
+  char       *result       = NULL;
 
   assert(filename != NULL);
 
@@ -114,7 +117,7 @@ char *affy_get_cdf_name_from_cel(const char *filename, AFFY_ERROR *err)
       AFFY_HANDLE_ERROR("couldn't read CEL header", AFFY_ERROR_IO, err, NULL);
     }
 
-    while (fgets(buf, MAXBUF, fp) != NULL && readin < hdrlen)
+    while (affy_readchars(fp, buf, MAXBUF) && readin < hdrlen)
     {
       if (!strncmp(buf, "DatHeader=", 10))
         break;
@@ -167,13 +170,16 @@ char *affy_get_cdf_name_from_cel(const char *filename, AFFY_ERROR *err)
   else /* text CEL file */
   {
     /* Find the dat header line */
-    while (fgets(buf, MAXBUF, fp) != NULL)
-      if (!strncmp(buf, "DatHeader=", 10))
+    while (fgets_strip_realloc(&fgets_buffer, &max_string_len, fp) != NULL)
+      if (!strncmp(fgets_buffer, "DatHeader=", 10))
         break;
     
-    result = affy_get_cdf_name(buf, err);
+    result = affy_get_cdf_name(fgets_buffer, err);
 
     fclose(fp);
+    
+    if (fgets_buffer)
+        free(fgets_buffer);
 
     AFFY_CHECK_ERROR(err, NULL);
   }
