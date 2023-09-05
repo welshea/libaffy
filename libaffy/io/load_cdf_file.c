@@ -24,6 +24,7 @@
  * 03/14/14: updated to deal with exon arrays (EAW)
  * 06/01/18: change cdf malloc to calloc, so it is initialized to zeroes (EAW)
  * 08/12/20: store full path to CDF file in flags, so we can print later (EAW)
+ * 09/05/23: fopen() everything as "rb" (EAW)
  *
  **************************************************************************/
 
@@ -33,7 +34,7 @@ static bool file_readable(const char *filename)
 {
   FILE *fp;
 
-  if ((fp = fopen(filename, "r")) == NULL)
+  if ((fp = fopen(filename, "rb")) == NULL)
   {
     return false;
   }
@@ -62,7 +63,7 @@ AFFY_CDFFILE *affy_load_cdf_file_byname(char *cdf_filename,
   pb_init(&pbs);
 
   /* Open file */
-  fp = fopen(cdf_filename, "r");
+  fp = fopen(cdf_filename, "rb");
   if (fp == NULL)
     AFFY_HANDLE_ERROR("error opening CDF file", AFFY_ERROR_IO, err, NULL);
 
