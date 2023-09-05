@@ -167,8 +167,9 @@ extern "C"
   typedef struct affy_textio_s
   {
     FILE *fp;
-    bool  skip_read;
     char *buf;
+    int   max_buf_len;
+    bool  skip_read;
   } AFFY_TEXTIO;
 
   /* Forward reference for AFFY_PIXREGION */
