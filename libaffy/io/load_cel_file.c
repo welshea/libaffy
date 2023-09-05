@@ -20,6 +20,7 @@
  * 03/14/08: New error handling scheme (AMH)
  * 09/20/10: Pooled memory allocator (AMH)
  * 09/19/12: Added sanity checker for NaN and Inf (EAW)
+ * 09/05/23: fopen() everything as "rb" (EAW)
  *
  **************************************************************************/
 
@@ -121,6 +122,7 @@ AFFY_CELFILE *affy_load_cel_file(char *filename, AFFY_ERROR *err)
   } 
   else 
   {
+#if 0   /* all line I/O functions should be EOL-agnostic binary reads now */
     /* Assumed to be text; reopen in text format (probably not necessary) */
     fclose(fp);
     fp = fopen(filename, "r");
@@ -129,6 +131,7 @@ AFFY_CELFILE *affy_load_cel_file(char *filename, AFFY_ERROR *err)
                              AFFY_ERROR_IO, 
                              err, 
                              done);
+#endif
 
     affy_load_text_cel_file(fp, cf, &pbs, err);
   }
