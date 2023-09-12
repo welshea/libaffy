@@ -52,7 +52,8 @@ char * fgets_strip_realloc(char **return_string, int *return_max_length,
     	/* may be a Mac text line, back up a character */
     	else if (old_c == '\r')
     	{
-    	    fseek(infile, -1 * sizeof(char), SEEK_CUR);
+    	    /* fseek(infile, -1 * sizeof(char), SEEK_CUR); */
+    	    ungetc(c, infile);
 
     	    break;
     	}
