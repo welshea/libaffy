@@ -1,3 +1,7 @@
+2023-09-05:  replace unsafe Mac/Unix/PC EOL-related functions;
+             ARM Mac can now read certain CEL files that were causing aborts
+
+
 2022-12-22:  various minor edits so that it builds on Ubuntu now
 
 
