@@ -28,6 +28,8 @@
  * 08/12/20: add cdf_filename (EAW)
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
+ * 09/13/23: added iron_check_saturated flag (EAW)
+ * 09/13/23: added iron_ignore_low flag (EAW)
  *
  **************************************************************************/
 
@@ -70,6 +72,8 @@ void affy_rma_set_defaults(AFFY_COMBINED_FLAGS *f)
   f->iron_weight_exponent              = 4.0;
   f->iron_fit_window_frac              = 0.10;
   f->iron_condense_training            = false;
+  f->iron_check_saturated              = true;
+  f->iron_ignore_low                   = true;
   f->iron_ignore_noise                 = false;
   f->salvage_corrupt                   = false;
   f->floor_to_min_non_zero             = false;
