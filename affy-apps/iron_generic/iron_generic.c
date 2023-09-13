@@ -30,6 +30,8 @@
  *           change does not actually affect results, since 1:1 probeset:probe
  * 08/12/20: change description of --bioconductor-compatability (EAW)
  * 08/12/20: changed error message for no input files specified (EAW)
+ * 09/13/23: added --iron-(no)-check-saturated (EAW)
+ * 09/13/23: added --iron-(no)-ignore-low (EAW)
  *
  **************************************************************************/
 
@@ -121,6 +123,10 @@ static struct argp_option options[] = {
   { "bg-global",135,0,0,"Global background subtraction" },
   { "floor-non-zero-to-one",136,0,0,"Floor final non-zero values to 1.0" },
   { "microarray",137,0,0,"Use defaults suitable for microarrays (default)" },
+  { "iron-check-saturated",140,0,0,"Check/ignore 16-bit saturated values when training normalization (default)" },
+  { "iron-no-check-saturated",141,0,0,"Do not check for saturated values when training normalization" },
+  { "iron-ignore-low",142,0,0,"Ignore reference values <= 1 when training normalization (default)" },
+  { "iron-no-ignore-low",143,0,0,"Ignore reference values <= 0.00001 when training normalization" },
   {0}
 };
 
@@ -350,6 +356,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.iron_weight_exponent = 0;
       flags.iron_fit_both_x_y = true;
       flags.iron_condense_training = true;
+      flags.iron_check_saturated = false;
+      flags.iron_ignore_low = true;
       flags.floor_to_min_non_zero = false;
       flags.floor_non_zero_to_one = false;
       break;
@@ -362,6 +370,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.iron_weight_exponent = 0;
       flags.iron_fit_both_x_y = false;
       flags.iron_condense_training = true;
+      flags.iron_check_saturated = false;
+      flags.iron_ignore_low = false;  /* could be TPM data with tiny values */
       flags.floor_to_min_non_zero = false;
       flags.floor_non_zero_to_one = false;
       break;
@@ -407,9 +417,28 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.iron_weight_exponent = 4;
       flags.iron_fit_both_x_y = false;
       flags.iron_condense_training = false;
+      flags.iron_check_saturated = true;
+      flags.iron_ignore_low = true;
       flags.floor_to_min_non_zero = false;
       flags.floor_non_zero_to_one = false;
       break;
+    /* --iron-check-saturated */
+    case 140:
+      flags.iron_check_saturated = true;
+      break;
+    /* --iron-no-check-saturated */
+    case 141:
+      flags.iron_check_saturated = false;
+      break;
+    /* --iron-ignore-low */
+    case 142:
+      flags.iron_ignore_low = true;
+      break;
+    /* --iron-no-ignore-low */
+    case 143:
+      flags.iron_ignore_low = false;
+      break;
+
     
     case 'd':
       directory = h_strdup(arg);
