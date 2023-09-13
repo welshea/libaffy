@@ -1,5 +1,21 @@
-2023-09-05:  replace unsafe Mac/Unix/PC EOL-related functions;
-             ARM Mac can now read certain CEL files that were causing aborts
+2023-09-13:
+iron, iron_generic:
+  new --iron-(no)-check-saturated and --iron-(no)-ignore-low flags
+  included new flag non-default settings in --rnaseq and --proteomics
+  --iron-no-check-saturated, set by both --proteomics and --rnaseq,
+    is unlikely to change results, since the particular edge case it
+    addresses is unlikely to ever occur
+  --iron-no-ignore-low, set by --rnaseq, allows TPM data to be processed
+    correctly now, since it is not uncommon for ~half the values in TPM
+    data to be < 1 due to its overly-large divisor.  Previously, those
+    overly-small values were ignored by IRON, leading to sub-optimal
+    normalization.  There is no more need to scale the data up by 1024x
+    (a +10 shift in log2 space) so that most values are > 1.
+
+
+2023-09-05:
+replace unsafe Mac/Unix/PC EOL-related functions;
+ARM Mac can now read certain CEL files that were causing aborts
 
 
 2022-12-22:  various minor edits so that it builds on Ubuntu now
