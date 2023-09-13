@@ -26,6 +26,7 @@
  * 08/12/20: add cdf_filename (EAW)
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
+ * 09/13/23: added iron_check_saturated flag (EAW)
  *
  **************************************************************************/
 
@@ -194,6 +195,8 @@ typedef struct affy_combined_flag_struct
   bool   iron_fit_both_x_y;
   bool   iron_untilt_normalization;
   bool   iron_condense_training;
+  bool   iron_check_saturated;
+  bool   iron_ignore_low;
   bool   iron_ignore_noise;
   double iron_weight_exponent;
   double iron_fit_window_frac;
