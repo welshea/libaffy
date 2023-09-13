@@ -28,6 +28,7 @@
  * 2019/03/15: free(filestem) to plug minor memory leak (EAW)
  * 2019/03/15: only floor probesets if unlog_flag is set (EAW)
  * 2019/10/15: added affy_floor_probeset_non_zero_to_one() (EAW)
+ * 2023/09/13: mask/floor values < 1.0 or 1E-5 depending on --iron-ignore-low (EAW)
  *
  * *** TODO -- fix 1:many probe:probeset stuff ***
  *
@@ -52,6 +53,7 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
   affy_int32    x, y, numprobes, numprobes2;
   double       *model_signals, *input_signals, *scale_factors;
   double        rmsd, frac;
+  double        low_value;   /* used for masking and flooring */
   char         *mask_model, *mask, mask_char;
   int          *mempool;
   unsigned int  i, j;
@@ -113,6 +115,10 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
                            err,
                            cleanup);
 
+  low_value = 1.0E-5;
+  if (f->iron_ignore_low)
+    low_value = 1.0;
+
   /* NOTE -- there will be some minor issues with exclusions of probes
    *  that belong to multiple probesets.  If even one copy of a probe
    *  is not excluded, one copy is left unmasked.
@@ -150,7 +156,7 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
         mask_char = 1;
 
       /* mask low intensity points */
-      if (model_signals[p] < 1)
+      if (model_signals[p] < low_value)
         mask_char = 1;
 
       /* mask probesets that we want to exclude from training */
@@ -200,7 +206,7 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
         mask_char = 1;
 
       /* mask low intensity points */
-      if (model_signals[j] < 1)
+      if (model_signals[j] < low_value)
         mask_char = 1;
 
       /* mask probesets that we want to exclude from training */
@@ -274,7 +280,7 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
         mask[p] = mask_model[p] | bit_test(cs->chip[i]->cel->mask[x], y);
 
         /* mask low intensity points */
-        if (input_signals[p] < 1)
+        if (input_signals[p] < low_value)
           mask[p] = 1;
       }
     }
@@ -289,7 +295,7 @@ void affy_pairwise_normalization(AFFY_CHIPSET *cs,
         mask[j] = mask_model[j] | bit_test(cs->chip[i]->cel->mask[x], y);
 
         /* mask low intensity points */
-        if (input_signals[j] < 1)
+        if (input_signals[j] < low_value)
           mask[j] = 1;
 
         j++;
@@ -496,6 +502,7 @@ void affy_pairwise_normalization_probeset(AFFY_CHIPSET *cs,
   double       *model_signals, *input_signals, *scale_factors;
   double        rmsd, frac;
   double        log2 = log(2.0);
+  double        low_value;   /* used for masking and flooring */
   char         *mask;
   int          *mempool;
   unsigned int  i;
@@ -538,7 +545,9 @@ void affy_pairwise_normalization_probeset(AFFY_CHIPSET *cs,
                            err,
                            cleanup);
 
-  memset(mask, 0, numprobesets * sizeof(char));
+  low_value = 1.0E-5;
+  if (f->iron_ignore_low)
+    low_value = 1.0;
 
   model_signals  = model_chip->probe_set;
   if (unlog_flag)
@@ -562,8 +571,10 @@ void affy_pairwise_normalization_probeset(AFFY_CHIPSET *cs,
         mask[p] = 1;
     
       /* mask low intensity points */
-      if (model_signals[p] < 1 || input_signals[p] < 1)
+      if (model_signals[p] < low_value || input_signals[p] < low_value)
+      {
         mask[p] = 1;
+      }
 
       /* mask probesets that we want to exclude from training */
       if (f->use_exclusions && cdf->exclusions)
@@ -653,8 +664,8 @@ void affy_pairwise_normalization_probeset(AFFY_CHIPSET *cs,
         input_signals[p] = MIN_SIGNAL;
 #endif
 #if 0
-      if (input_signals[p] < 1.0)
-        input_signals[p] = 1.0;
+      if (input_signals[p] < low_value)
+        input_signals[p] = low_value;
 #endif
     }
 
@@ -662,8 +673,8 @@ void affy_pairwise_normalization_probeset(AFFY_CHIPSET *cs,
     {
       for (p = 0; p < numprobesets; p++)
       {
-        if (input_signals[p] < 1.0)
-          input_signals[p] = 1.0;
+        if (input_signals[p] < low_value)
+          input_signals[p] = low_value;
 
         input_signals[p] = log(input_signals[p]) / log2;
       }
