@@ -30,6 +30,8 @@
  * 08/12/20: disable searching current working directory for CEL files (EAW)
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
+ * 09/13/23: added --iron-(no)-check-saturated (EAW)
+ * 09/13/23: added --iron-(no)-ignore-low (EAW)
  *
  **************************************************************************/
 
@@ -108,6 +110,10 @@ static struct argp_option options[] = {
   { "iron-exclusions",'x',"EXCLUSIONSFILE",0,"Ignore probesets from EXCLUSIONSFILE during curve fitting" },
   { "probeset-norm",138,0,0,"Normalize probesets after probe normalization (default)" },
   { "no-probeset-norm",139,0,0,"Disable probeset normalization after probe normalization" },
+  { "iron-check-saturated",140,0,0,"Check/ignore 16-bit saturated values when training normalization (default)" },
+  { "iron-no-check-saturated",141,0,0,"Do not check for saturated values when training normalization" },
+  { "iron-ignore-low",142,0,0,"Ignore reference values <= 1 when training normalization (default)" },
+  { "iron-no-ignore-low",143,0,0,"Ignore reference values <= 0.00001 when training normalization" },
   {0}
 };
 
@@ -383,6 +389,22 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       break;
     case 139:
       flags.normalize_probesets = false;
+      break;
+    /* --iron-check-saturated */
+    case 140:
+      flags.iron_check_saturated = true;
+      break;
+    /* --iron-no-check-saturated */
+    case 141:
+      flags.iron_check_saturated = false;
+      break;
+    /* --iron-ignore-low */
+    case 142:
+      flags.iron_ignore_low = true;
+      break;
+    /* --iron-no-ignore-low */
+    case 143:
+      flags.iron_ignore_low = false;
       break;
 
     case 'g':
