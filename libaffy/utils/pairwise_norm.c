@@ -34,6 +34,8 @@
  *           (opposite direction/interpretation as GlobalScale)
  * 05/25/21: better handling of empty and near-empty samples (EAW)
  * 12/22/22: define M_PI if not already defined; for Ubuntu/Debian (EAW)
+ * 09/13/23: support --iron-(no)-check-saturated (EAW)
+ * 09/13/23: replace 9.0E8 initializations with DBL_MAX (EAW)
  *
  **************************************************************************/
 
@@ -1218,7 +1220,7 @@ void fill_normalization_scales(char *filestem,
                                double *return_rmsd,
                                AFFY_ERROR *err)
 {
-  double min_sig1 = 9.0E8, min_sig2 = 9.0E8;
+  double min_sig1 = DBL_MAX, min_sig2 = DBL_MAX;
   int    bit16_flag1 = 1, bit16_flag2 = 1, i, *mempool;
    
   struct signal_pair  *signal_pairs = NULL;
@@ -1257,6 +1259,13 @@ void fill_normalization_scales(char *filestem,
 #if DEBUG_FIXED_RANK
   rank_frac_cutoff = 0.005;
 #endif
+
+  /* disable saturation checking */
+  if (f->iron_check_saturated == 0)
+  {
+      bit16_flag1 = 0;
+      bit16_flag2 = 0;
+  }
 
   for (i = 0; i < num_spots; i++)
   {
