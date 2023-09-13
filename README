@@ -89,14 +89,17 @@ pairgen still expect the input to be unlogged.
    --microarray    (default, if no meta-flags are specified)
       --bg-rma  --log2    --iron-non-linear     --iron-weight-exponent=4
       --iron-fit-only-y   --iron-no-condense-training --floor-none
+      --iron-check-saturation --iron-ignore-low
 
    --rnaseq
       --bg-none --unlog   --iron-untilt         --iron-weight-exponent=0
       --iron-fit-only-y   --iron-condense-training    --floor-none
+      --iron-no-check-saturation --iron-no-ignore-low
 
    --proteomics
       --bg-none --unlog   --iron-global-scaling --iron-weight-exponent=0
       --iron-fit-both-x-y --iron-condense-training    --floor-none
+      --iron-no-check-saturation --iron-ignore-low
 
 
 
