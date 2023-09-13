@@ -22,6 +22,8 @@
  * 06/01/18: added support for probeset exclusions during IRON training (EAW)
  * 09/12/18: added support for not scaling excluded probesets (EAW)
  * 03/13/19: added support for iron_ignore_noise (EAW)
+ * 09/13/23: added support for iron_check_saturated (EAW)
+ * 09/13/23: added support for iron_ignore_low (EAW)
  *
  **************************************************************************/
 
@@ -168,6 +170,10 @@ void print_flags(AFFY_COMBINED_FLAGS *f, char *output_file_name)
          boolstr(f->iron_global_scaling_normalization));
   printf("Use single line untilting instead:   %s\n",
          boolstr(f->iron_untilt_normalization));
+  printf("Exclude potentially 16-bit saturated during training: %s\n",
+         boolstr(f->iron_check_saturated));
+  printf("Exclude reference values <= 1 during training: %s\n",
+         boolstr(f->iron_ignore_low));
   printf("Exclude noise-level during training: %s\n",
          boolstr(f->iron_ignore_noise));
   printf("Exclude probesets during training:   %s\n",
