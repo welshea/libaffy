@@ -36,6 +36,7 @@
  * 12/22/22: define M_PI if not already defined; for Ubuntu/Debian (EAW)
  * 09/13/23: support --iron-(no)-check-saturated (EAW)
  * 09/13/23: replace 9.0E8 initializations with DBL_MAX (EAW)
+ * 10/05/23: change STDERR GlobalFitLine columns, headers, signs (EAW)
  *
  **************************************************************************/
 
@@ -1288,25 +1289,47 @@ void fill_normalization_scales(char *filestem,
   }
   if (i == num_spots || num_both_not_weak == 0)
   {
-    for (i = 0; i < num_spots; i++)
-      signals2_scales[i] = 1.0;
-   
-    *return_training_frac = 1.0;
+    /* self */
+    if (i == num_spots)
+    {
+        *return_training_frac = 1.0;
+
+        if (global_scaling_flag)
+          fprintf(stderr, "GlobalScale:\t%s\t%f\t%f\t%s\t%d\t%d\t%d\t%s\n",
+                          filestem,
+                          1.0, 0.0,
+                          "", num_both_not_weak, num_not_weak, num_spots,
+                          "");
+        else if (f->iron_untilt_normalization)
+          fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%s\t%d\t%d\t%d\t%s\n",
+                          filestem,
+                          1.0, 0.0, 0.0,
+                          "", num_both_not_weak, num_not_weak, num_spots,
+                          "");
+    }
+    /* no good spots */
+    else
+    {
+        *return_training_frac = 0.0;
+
+        if (global_scaling_flag)
+          fprintf(stderr, "GlobalScale:\t%s\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
+                          filestem,
+                          1.0, 0.0,
+                          0, num_both_not_weak, num_not_weak, num_spots,
+                          0.0);
+        else if (f->iron_untilt_normalization)
+          fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
+                          filestem,
+                          1.0, 0.0, 0.0,
+                          0, num_both_not_weak, num_not_weak, num_spots,
+                          0.0);
+    }
+
     *return_rmsd = 0.0;
 
-    if (global_scaling_flag)
-      fprintf(stderr, "GlobalScale:\t%s\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
-                      filestem,
-                      1.0, 0.0,
-                      num_not_weak,
-                      num_both_not_weak,
-                      num_not_weak, num_spots,
-                      1.0);
-    else if (f->iron_untilt_normalization)
-      fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\n",
-                      filestem,
-                      1.0, 0.0, 0.0,
-                      num_both_not_weak, num_not_weak, num_spots);
+    for (i = 0; i < num_spots; i++)
+      signals2_scales[i] = 1.0;
 
     return;
   }
@@ -1503,15 +1526,14 @@ void fill_normalization_scales(char *filestem,
       fprintf(stderr, "GlobalScale:\t%s\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
                       filestem,
                       1.0, 0.0,
-                      num_not_weak,
-                      num_both_not_weak,
-                      num_not_weak, num_spots,
+                      0, num_both_not_weak, num_not_weak, num_spots,
                       1.0);
     else if (f->iron_untilt_normalization)
-      fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\n",
+      fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
                       filestem,
                       1.0, 0.0, 0.0,
-                      num_both_not_weak, num_not_weak, num_spots);
+                      0, num_both_not_weak, num_not_weak, num_spots,
+                      1.0);
 
     /* free the memory we've allocated thus far */
     h_free(mempool);
@@ -2031,12 +2053,12 @@ void fill_normalization_scales(char *filestem,
 
     global_scale = exp(global_scale / count);
 
-    fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\n",
+    fprintf(stderr, "GlobalFitLine:\t%s\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%f\n",
                     filestem,
-                    1.0 / global_scale,
-                    -log(global_scale) / log(2.0),
-                    -(180.0 * atan(eqn_windows[0].slope) / M_PI),
-                    num_both_not_weak, num_not_weak, num_spots);
+                    global_scale, log(global_scale) / log(2.0),
+                    (180.0 * atan(eqn_windows[0].slope) / M_PI),
+                    count, num_both_not_weak, num_not_weak, num_spots,
+                    (double) count / (double) num_both_not_weak);
   }
 
   /* store scaling multipliers in signals2_scales array */
