@@ -22,6 +22,9 @@
  * 09/14/18: added affy_load_spikeins_file() (EAW)
  * 01/10/20: print column headers for various stderr output (EAW)
  * 09/05/23: change utils_getline() to fgets_strip_realloc() (EAW)
+ * 10/05/23: change STDERR GlobalFitLine columns and headers (EAW)
+ * 01/10/24: don't free cel data that doesn't exist (EAW)
+ * 01/10/24: pass flags to affy_mean_normalization() (EAW)
  * 
  *
  **************************************************************************/
@@ -294,8 +297,9 @@ static void load_pm(AFFY_CHIP *cp, AFFY_ERROR *err)
 
     cp->pm[k] = cp->cel->data[x][y].value;
   }
-  
-  h_free(cp->cel->data);
+
+  if (cp->cel->data)
+    h_free(cp->cel->data);
   cp->cel->data = NULL;
 }
 
@@ -585,12 +589,7 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
     /* Normalize (partially) */
     if (f->use_normalization)
     {
-      /* Option to use mean normalization */
-      if (f->use_mean_normalization)
-      {
-        affy_mean_normalization(result, f->mean_normalization_target_mean);
-      }
-      else if (!f->use_pairwise_normalization)
+      if (!f->use_mean_normalization && !f->use_pairwise_normalization)
       {
         /* Default is quantile normalization */
         if (mean == NULL)
@@ -607,6 +606,15 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
         AFFY_CHECK_ERROR_GOTO(err, cleanup);
       }
     }
+  }
+
+  /* Option to use mean normalization */
+  /* Must go after all chips are loaded now, so that mean of means can be
+   * calculated if target mean = 0.
+   */
+  if (f->use_normalization && f->use_mean_normalization)
+  {
+    affy_mean_normalization(result, f->mean_normalization_target_mean, f);
   }
 
   /* Redistribute quantile means */
@@ -720,15 +728,17 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
     }
     else if (f->iron_untilt_normalization)
     {
-        fprintf(stderr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+        fprintf(stderr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
                         "GlobalFitLine:",
                         "SampleID",
-                        "FitScale",
-                        "Log2FitScale",
-                        "FitTiltDegrees",
+                        "Scale",
+                        "Log2Scale",
+                        "UnTiltDegrees",
+                        "TrainingSet",
                         "PresentBoth",
                         "PresentSample",
-                        "PresentDataset");
+                        "PresentDataset",
+                        "FractionTrain");
     }
     
     affy_pairwise_normalization(result,
@@ -772,15 +782,17 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
     }
     else if (f->iron_untilt_normalization)
     {
-        fprintf(stderr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+        fprintf(stderr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
                         "GlobalFitLine:",
                         "SampleID",
-                        "FitScale",
-                        "Log2FitScale",
-                        "FitTiltDegrees",
+                        "Scale",
+                        "Log2Scale",
+                        "UnTiltDegrees",
+                        "TrainingSet",
                         "PresentBoth",
                         "PresentSample",
-                        "PresentDataset");
+                        "PresentDataset",
+                        "FractionTrain");
     }
 
     affy_pairwise_normalization_probeset(result, model_chip, 0, f, err);
