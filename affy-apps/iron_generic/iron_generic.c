@@ -32,6 +32,7 @@
  * 08/12/20: changed error message for no input files specified (EAW)
  * 09/13/23: added --iron-(no)-check-saturated (EAW)
  * 09/13/23: added --iron-(no)-ignore-low (EAW)
+ * 01/10/24: change -m default target mean to 0 (mean of sample means)
  *
  **************************************************************************/
 
@@ -447,7 +448,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     case 'm':
       flags.use_normalization = true;
       flags.use_mean_normalization = true;
+      flags.use_pairwise_normalization = false;
       flags.use_probeset_scaling   = true;
+      flags.mean_normalization_target_mean = 0;
       if (arg != NULL) 
         flags.mean_normalization_target_mean = atof(arg);
       break;
