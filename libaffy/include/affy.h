@@ -45,6 +45,7 @@
  * 08/13/19: removed "unsigned" from affy_is_control_string() (EAW)
  * 10/15/19: added affy_floor_probeset_non_zero_to_one() (EAW)
  * 08/12/20: pass flags to more functions (EAW)
+ * 01/10/24: pass flags to affy_mean_normalization() (EAW)
  *
  **************************************************************************/
 
@@ -709,7 +710,8 @@ extern "C"
   int   affy_readmulti(FILE *fp, const char *fmt, ...);
         
   /* Utility functions */
-  void            affy_mean_normalization(AFFY_CHIPSET *d, double target_mean);
+  void            affy_mean_normalization(AFFY_CHIPSET *d, double target_mean,
+                                          AFFY_COMBINED_FLAGS *f);
   char           *affy_get_cdf_name(const char *buf, AFFY_ERROR *err);
   char           *affy_get_cdf_name_from_cel(const char *filename, 
                                              AFFY_ERROR *err);
