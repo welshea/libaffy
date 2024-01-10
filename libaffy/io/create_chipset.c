@@ -24,6 +24,7 @@
  * 03/15/19: generic cdf: allocate and initialize cdf->seen_xy (EAW)
  * 08/13/19: fix AFFY_HANDLE_ERROR_VOID where AFFY_HANDLE_ERROR needed (EAW)
  * 08/12/20: pass flags to affy_create_chipset() (EAW)
+ * 01/10/24: swap create_blank_generic_cdf() numrows/numcols (EAW)
  *
  **************************************************************************/
 
@@ -113,8 +114,8 @@ AFFY_CDFFILE *create_blank_generic_cdf(unsigned int max_chips,
     hattach(cdf->array_type, cdf);
 
   
-  cdf->numrows      = 1;
-  cdf->numcols      = numprobes;
+  cdf->numrows      = numprobes;   /* y is rows, not cols */
+  cdf->numcols      = 1;           /* x is cols, not rows */
   cdf->numprobes    = numprobes;
   cdf->numprobesets = numprobes;
   cdf->numqcunits   = 0;
