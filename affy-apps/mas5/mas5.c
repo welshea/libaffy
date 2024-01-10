@@ -24,6 +24,9 @@
  * 05/22/19: added --ignore-chip-mismatch support (EAW)
  * 08/12/20: change description of --bioconductor-compatability (EAW)
  * 08/12/20: disable searching current working directory for CEL files (EAW)
+ * 01/10/24: add -m short flag and =TARGET option to --norm-mean (EAW)
+ * 01/10/24: change -m description to document that it has actually always
+ *           been probe-only, not probesets, as originally described
  *
  **************************************************************************/
 
@@ -49,7 +52,8 @@ int                  *mempool;
 const char *argp_program_version = affy_version;
 const char *argp_program_bug_address = "<Eric.Welsh@moffitt.org>";
 static struct argp_option options[] = {
-  { "norm-mean",1,0,0,"Mean normalize probeset data" },
+  { "norm-mean",'m',"TARGET",OPTION_ARG_OPTIONAL,
+    "Normalize probe (not probeset) expression on chip to TARGET" },
   { "norm-quantile",2,0,0,"Quantile normalize probe data" },
   { "bg-none",4,0,0,"Disable background correction" },
   { "directory",'d',"DIR",0,"Use directory as working directory" },
@@ -179,12 +183,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
   switch (key) 
   {
-    case 1:
+    case 'm':
       flags.use_normalization          = true;
       flags.use_mean_normalization     = true;
       flags.use_probeset_scaling       = true;
       flags.use_quantile_normalization = false;
       flags.use_pairwise_normalization = false;
+      if (arg != NULL) 
+        flags.mean_normalization_target_mean = atof(arg);
       break;
     case 2:
       flags.use_normalization          = true;
