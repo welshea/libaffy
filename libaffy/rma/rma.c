@@ -29,6 +29,7 @@
  * 05/22/19: --ignore-chip-mismatch support (EAW)
  * 08/12/20: pass flags to affy_create_chipset() (EAW)
  * 09/05/23: change utils_getline() to fgets_strip_realloc() (EAW)
+ * 01/10/24: pass flags to affy_mean_normalization() (EAW)
  *
  **************************************************************************/
 
@@ -259,12 +260,7 @@ AFFY_CHIPSET *affy_rma(char **filelist, AFFY_COMBINED_FLAGS *f,
     /* Normalize (partially) */
     if (f->use_normalization)
     {
-      /* Option to use mean normalization */
-      if (f->use_mean_normalization)
-      {
-        affy_mean_normalization(result, f->mean_normalization_target_mean);
-      }
-      else if (!f->use_pairwise_normalization)
+      if (!f->use_mean_normalization && !f->use_pairwise_normalization)
       {
         /* Default is quantile normalization */
         if (mean == NULL)
@@ -281,6 +277,15 @@ AFFY_CHIPSET *affy_rma(char **filelist, AFFY_COMBINED_FLAGS *f,
         AFFY_CHECK_ERROR_GOTO(err, cleanup);
       }
     }
+  }
+
+  /* Option to use mean normalization */
+  /* Must go after all chips are loaded now, so that mean of means can be
+   * calculated if target mean = 0.
+   */
+  if (f->use_normalization && f->use_mean_normalization)
+  {
+    affy_mean_normalization(result, f->mean_normalization_target_mean, f);
   }
 
   /* Redistribute quantile means */
