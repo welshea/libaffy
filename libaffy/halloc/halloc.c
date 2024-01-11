@@ -18,6 +18,9 @@
  *      2016-08-19 EAW -- renamed max_align_t to halloc_max_align_t
  *       so that it builds on OSX with clang and Xcode
  *       (clang/XCode defined their own conflicting max_align_t).
+ *
+ *      2024-01-25 EAW -- disable realloc being used as free entirely,
+ *       as the check is causing problems with valgrind now
  */
 
 #include <stdlib.h>  /* realloc */
@@ -200,7 +203,10 @@ static void _set_allocator(void)
 		/* hmm */
 		return;
 		
-	if ((p = realloc(p, 0)))
+        /* EAW -- checking for realloc(p, 0) causes problems for valigrind
+         * now, so don't even check for it, just never use it as free()
+         */
+	if (1 || (p = realloc(p, 0)))
 	{
 		/* realloc cannot be used as free() */
 		allocator = _realloc;
