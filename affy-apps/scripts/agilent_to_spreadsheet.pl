@@ -25,6 +25,59 @@
 #
 #  I've added some code to try to deal with this....
 
+
+use Scalar::Util qw(looks_like_number);
+
+
+sub is_number
+{
+    # use what Perl thinks is a number first
+    # this is purely for speed, since the more complicated REGEX below should
+    #  correctly handle all numeric cases
+    if (looks_like_number($_[0]))
+    {
+        # Perl treats infinities as numbers, Excel does not.
+        #
+        # Perl treats NaN or NaNs, and various mixed caps, as numbers.
+        # Weird that not-a-number is a number... but it is so that
+        # it can do things like nan + 1 = nan, so I guess it makes sense
+        #
+        if ($_[0] =~ /^[-+]*(Inf|NaN)/i)
+        {
+            return 0;
+        }
+        
+        return 1;
+    }
+
+    # optional + or - sign at beginning
+    # then require either:
+    #  a number followed by optional comma stuff, then optional decimal stuff
+    #  mandatory decimal, followed by optional digits
+    # then optional exponent stuff
+    #
+    # Perl cannot handle American comma separators within long numbers.
+    # Excel does, so we have to check for it.
+    # Excel doesn't handle European dot separators, at least not when it is
+    #  set to the US locale (my test environment).  I am going to leave this
+    #  unsupported for now.
+    #
+    if ($_[0] =~ /^([-+]?)([0-9]+(,[0-9]{3,})*\.?[0-9]*|\.[0-9]*)([Ee]([-+]?[0-9]+))?$/)
+    {
+        # current REGEX can treat '.' as a number, check for that
+        if ($_[0] eq '.')
+        {
+            return 0;
+        }
+        
+        return 1;
+    }
+    
+    return 0;
+}
+
+
+
 $subtract_local_background_flag = 1;
 
 $min_signal_cutoff = 1E-5;
@@ -199,7 +252,12 @@ for ($f = 0; $f < @ARGV; $f++)
         # skip Agilent control probes
         if ($control_type =~ /[A-Za-z0-9]/)
         {
-            next;
+            # GSE77380 uses 0/1 for data/control
+            # don't skip if it is a number and that number is zero
+            if (!(is_number($control_type) && $control_type == 0))
+            {
+                next;
+            }
         }
 
         $read_a_file_flag = 1;
