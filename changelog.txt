@@ -6,6 +6,11 @@
  agilent_to_spreadsheet.pl  don't skip control probes labeled as 0
 
 
+2024-01-25:
+ disable realloc being used as free entirely, as the check is causing problems
+ with valgrind now
+
+
 2024-01-10:
  -m --norm-mean option now uses geometric mean, instead of arithmetic mean,
  ignores the minimum value per chip during traing, ignores other masked probes
