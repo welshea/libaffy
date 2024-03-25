@@ -1,3 +1,26 @@
+2024-03-25:
+ iron: add --floor-to-min --floor-none --floor-non-zero-to-one flags
+
+
+2024-01-10:
+ -m --norm-mean option now uses geometric mean, instead of arithmetic mean,
+ ignores the minimum value per chip during traing, ignores other masked probes
+ during training (including AFFX control probes)
+ 
+ iron/mas5: add -m short flag and =TARGET option to --norm-mean (EAW)
+ iron/mas5: change -m description to document that it has actually always
+            been probe-only, not probesets, as originally described
+ iron/iron_generic: change -m default target mean to 0 (mean of sample means)
+
+
+2023-010-05:
+iron_generic:
+  change --rnaseq STDERR metric column headers and signs to match those
+  of --proteomics (Log2FitScale --> Log2Scale, etc.)
+
+
+libaffy-2.3.0.tar.gz [Released 2023-09-25]
+
 2023-09-13:
 iron, iron_generic:
   new --iron-(no)-check-saturated and --iron-(no)-ignore-low flags
