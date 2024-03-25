@@ -32,6 +32,11 @@
  *           probe norm (EAW)
  * 09/13/23: added --iron-(no)-check-saturated (EAW)
  * 09/13/23: added --iron-(no)-ignore-low (EAW)
+ * 01/10/24: add -m short flag and =TARGET option to --norm-mean (EAW)
+ * 01/10/24: change -m default target mean to 0 (mean of sample means)
+ * 01/10/24: change -m description to document that it has actually always
+ *           been probe-only, not probesets, as originally described
+ * 03/25/24: --floor-to-min, --floor-none, --floor-non-zero-to-one flags
  *
  **************************************************************************/
 
@@ -62,7 +67,8 @@ int                  *mempool;
 const char *argp_program_version = affy_version;
 const char *argp_program_bug_address = "<Eric.Welsh@moffitt.org>";
 static struct argp_option options[] = {
-  { "norm-mean",1,0,0,"Mean normalize probeset data" },
+  { "norm-mean",'m',"TARGET",OPTION_ARG_OPTIONAL,
+    "Normalize probe (not probeset) expression on chip to TARGET" },
   { "norm-quantile",2,0,0,"Quantile normalize probe data" },
   { "bg-none",4,0,0,"Disable background correction" },
   { "directory",'d',"DIR",0,"Use directory as working directory" },
@@ -100,12 +106,15 @@ static struct argp_option options[] = {
   { "iron-fit-window-frac",28,"FRACTION",0,
      "IRON: Fit window width fraction (default: 0.10)" },
   { "bg-global",29,0,0,"Global background subtraction" },
+  { "floor-to-min",131,0,0,"Set final zero/near-zero values to min value per sample" },
+  { "floor-none",132,0,0,"Do not apply any floors to final signals" },
   { "iron-condense-training",133,0,0,"Condense identical X,Y prior to probeset training" },
   { "iron-no-condense-training",134,0,0,"Do not condense identical X,Y prior to training (default)" },
 #if 0
   { "iron-ignore-noise",135,0,0,"Ignore noise-level data (<= ~peak) when training normalization" },
   { "iron-no-ignore-noise",136,0,0,"Include noise-level data when training normalization (default)" },
 #endif
+  { "floor-non-zero-to-one",136,0,0,"Floor final non-zero values to 1.0 (default)" },
   { "ignore-chip-mismatch", 137,   0, 0, "Do not abort when multiple chips types are detected" },
   { "iron-exclusions",'x',"EXCLUSIONSFILE",0,"Ignore probesets from EXCLUSIONSFILE during curve fitting" },
   { "probeset-norm",138,0,0,"Normalize probesets after probe normalization (default)" },
@@ -229,12 +238,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
   switch (key) 
   {
-    case 1:
+    case 'm':
       flags.use_normalization          = true;
       flags.use_mean_normalization     = true;
       flags.use_probeset_scaling       = true;
       flags.use_quantile_normalization = false;
       flags.use_pairwise_normalization = false;
+      flags.mean_normalization_target_mean = 0;
+      if (arg != NULL) 
+        flags.mean_normalization_target_mean = atof(arg);
       break;
     case 2:
       flags.use_normalization          = true;
@@ -369,17 +381,33 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.bg_global   = true;
       flags.use_mm_probe_subtraction  = false;
       break;
+    case 131:
+      flags.floor_to_min_non_zero = true;
+      flags.floor_non_zero_to_one = false;
+      break;
+    case 132:
+      flags.floor_to_min_non_zero = false;
+      flags.floor_non_zero_to_one = false;
+      break;
     case 133:
       flags.iron_condense_training = true;
       break;
     case 134:
       flags.iron_condense_training = false;
       break;
+    /* These are disused options, and conflict with newer option numbers in
+       other programs. */
+#if 0
     case 135:
       flags.iron_ignore_noise = true;
       break;
     case 136:
       flags.iron_ignore_noise = false;
+      break;
+#endif
+    case 136:
+      flags.floor_to_min_non_zero = false;
+      flags.floor_non_zero_to_one = true;
       break;
     case 137:
       flags.ignore_chip_mismatch = true;
