@@ -38,6 +38,7 @@
  * 08/12/20: pass flags to affy_create_chipset() (EAW)
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
+ * 01/10/24: pass flags to affy_mean_normalization() (EAW)
  *
  **************************************************************************/
 
@@ -370,11 +371,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
       }
     }
 
-    if (f->use_mean_normalization)
-    {
-      affy_mean_normalization(temp, f->mean_normalization_target_mean);
-    }
-    else if (f->use_pairwise_normalization)
+    if (f->use_pairwise_normalization)
     {
       info("Performing pairwise probe normalization...");
       affy_pairwise_normalization(temp, 
@@ -421,7 +418,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
       {
         if (f->use_mean_normalization)
         {
-          affy_mean_normalization(temp, f->mean_normalization_target_mean);
+          affy_mean_normalization(temp, f->mean_normalization_target_mean, f);
         }
         else if (f->use_pairwise_normalization)
         {
@@ -465,6 +462,15 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
     info("Finished one-at-a-time processing: %s\n", filelist[i]);
 
     chips_processed++;
+  }
+
+  /* Option to use mean normalization */
+  /* Must go after all chips are loaded now, so that mean of means can be
+   * calculated if target mean = 0.
+   */
+  if (f->use_normalization && f->use_mean_normalization)
+  {
+    affy_mean_normalization(result, f->mean_normalization_target_mean, f);
   }
 
   /* apply postponed quantile normalization */
@@ -660,15 +666,23 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
   /* floor probeset signal intensity  */
   if (f->bg_iron)
   {
-    if (f->use_pairwise_normalization)
+    if (f->use_pairwise_normalization ||
+        f->bioconductor_compatability == 0)
+    {
+      if (f->floor_non_zero_to_one)
+        affy_floor_probeset_non_zero_to_one(model_chipset, err);
+      else if (f->floor_to_min_non_zero)
+        affy_floor_probeset_to_min_non_zero(model_chipset, err);
+      else
         affy_floor_probeset(model_chipset, 1.0, err);
-    affy_floor_probeset(result, 1.0, err);
-  }
-  else if (!f->bioconductor_compatability)
-  {
-    if (f->use_pairwise_normalization)
-        affy_floor_probeset(model_chipset, 1.0, err);
-    affy_floor_probeset(result, 1.0, err);
+    }
+
+    if (f->floor_non_zero_to_one)
+      affy_floor_probeset_non_zero_to_one(result, err);
+    else if (f->floor_to_min_non_zero)
+      affy_floor_probeset_to_min_non_zero(result, err);
+    else
+      affy_floor_probeset(result, 1.0, err);
   }
 
   
