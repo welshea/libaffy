@@ -2,6 +2,10 @@
  iron: add --floor-to-min --floor-none --floor-non-zero-to-one flags
 
 
+2024-02-01:
+ agilent_to_spreadsheet.pl  don't skip control probes labeled as 0
+
+
 2024-01-10:
  -m --norm-mean option now uses geometric mean, instead of arithmetic mean,
  ignores the minimum value per chip during traing, ignores other masked probes
