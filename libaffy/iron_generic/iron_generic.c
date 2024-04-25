@@ -25,6 +25,7 @@
  * 10/05/23: change STDERR GlobalFitLine columns and headers (EAW)
  * 01/10/24: don't free cel data that doesn't exist (EAW)
  * 01/10/24: pass flags to affy_mean_normalization() (EAW)
+ * 04/25/24: add affy_median_normalization() (EAW)
  * 
  *
  **************************************************************************/
@@ -589,7 +590,8 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
     /* Normalize (partially) */
     if (f->use_normalization)
     {
-      if (!f->use_mean_normalization && !f->use_pairwise_normalization)
+      if (!f->use_mean_normalization && !f->use_median_normalization &&
+          !f->use_pairwise_normalization)
       {
         /* Default is quantile normalization */
         if (mean == NULL)
@@ -616,10 +618,15 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
   {
     affy_mean_normalization(result, f->mean_normalization_target_mean, f);
   }
+  else if (f->use_normalization && f->use_median_normalization)
+  {
+    affy_median_normalization(result, f->median_normalization_target_median, f);
+  }
 
   /* Redistribute quantile means */
-  if (f->use_normalization && !f->use_mean_normalization 
-      && !f->use_pairwise_normalization)
+  if (f->use_normalization &&
+      !f->use_mean_normalization && !f->use_median_normalization &&
+      !f->use_pairwise_normalization)
   {
     if (f->use_saved_means)
     {
@@ -702,7 +709,7 @@ AFFY_CHIPSET *affy_illumina(char **filelist, AFFY_COMBINED_FLAGS *f,
 
   /* XXX ask Steven about this. */
   if (f->use_normalization && !f->use_pairwise_normalization &&
-      !f->use_mean_normalization)
+      !f->use_mean_normalization && !f->use_median_normalization)
   {
     affy_rma_quantile_normalization_chipset(result, mean, f);
   }
