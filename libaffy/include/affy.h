@@ -46,6 +46,7 @@
  * 10/15/19: added affy_floor_probeset_non_zero_to_one() (EAW)
  * 08/12/20: pass flags to more functions (EAW)
  * 01/10/24: pass flags to affy_mean_normalization() (EAW)
+ * 04/25/24: added affy_median_normalization() (EAW)
  *
  **************************************************************************/
 
@@ -711,6 +712,8 @@ extern "C"
         
   /* Utility functions */
   void            affy_mean_normalization(AFFY_CHIPSET *d, double target_mean,
+                                          AFFY_COMBINED_FLAGS *f);
+  void            affy_median_normalization(AFFY_CHIPSET *d, double target_mean,
                                           AFFY_COMBINED_FLAGS *f);
   char           *affy_get_cdf_name(const char *buf, AFFY_ERROR *err);
   char           *affy_get_cdf_name_from_cel(const char *filename, 
