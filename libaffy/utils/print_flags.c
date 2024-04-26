@@ -24,6 +24,7 @@
  * 03/13/19: added support for iron_ignore_noise (EAW)
  * 09/13/23: added support for iron_check_saturated (EAW)
  * 09/13/23: added support for iron_ignore_low (EAW)
+ * 04/26/25: added support for median normalization (EAW)
  *
  **************************************************************************/
 
@@ -72,6 +73,14 @@ void print_flags(AFFY_COMBINED_FLAGS *f, char *output_file_name)
   if (f->use_mean_normalization)
     printf("(target: %f)\n",
            f->mean_normalization_target_mean);
+  else
+    printf("\n");
+
+  printf("Median normalization:                %s ",
+         boolstr(f->use_median_normalization));
+  if (f->use_median_normalization)
+    printf("(target: %f)\n",
+           f->median_normalization_target_median);
   else
     printf("\n");
   
