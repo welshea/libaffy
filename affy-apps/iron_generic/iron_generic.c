@@ -33,6 +33,8 @@
  * 09/13/23: added --iron-(no)-check-saturated (EAW)
  * 09/13/23: added --iron-(no)-ignore-low (EAW)
  * 01/10/24: change -m default target mean to 0 (mean of sample means)
+ * 04/25/24: add --norm-median (EAW)
+ * 05/01/24: add --mnorm-include-min -mnorm-exclude-min (EAW)
  *
  **************************************************************************/
 
@@ -59,6 +61,13 @@ AFFY_COMBINED_FLAGS flags;
 
 int debug_level = 2;
 
+
+/* Argh!!  --m-anything is treated as -m ...
+ *
+ * Evidently --long-args must start with at least 2 non-dash characters,
+ * otherwise, it will try to get too smart for its own good.
+ */
+
 /* Administrative options */
 const char *argp_program_version=affy_version;
 const char *argp_program_bug_address="<Eric.Welsh@moffitt.org>";
@@ -82,7 +91,7 @@ static struct argp_option options[] = {
   { "bg-none",5,0,0,"Disable background correction" },
   { "gct-output-format",'g',0,0,"Output expressions in gct format" },
   { "norm-mean",'m',"TARGET",OPTION_ARG_OPTIONAL,
-   "Normalize expression on chip to TARGET" },
+   "Normalize geometric mean expression on chip to TARGET" },
   { "dir",'d',"DIRECTORY",0,"Use DIRECTORY as working directory" },
   { "cdf",'c',"CDFDIR",0,"Use CDFDIR as location for CDF file" },
   { "output",'o',"OUTPUTFILE",0,"Output expressions to OUTPUTFILE" },
@@ -112,7 +121,7 @@ static struct argp_option options[] = {
   { "iron-fit-both-x-y",26,0,0,"IRON: Fit to both X and Y (better normalization, but may alter rank orders)"},
   { "iron-fit-only-y",27,0,0,"IRON: Fit only to Y (default)" },
   { "iron-fit-window-frac",28,"FRACTION",0,
-     "IRON: Fit window width fraction (default: 0.10)" },
+"IRON: Fit window width fraction (default: 0.10)" },
   { "proteomics",29,0,0,"Use defaults suitable for proteomics" },
   { "rnaseq",30,0,0,"Use defaults suitable for RNASeq" },
   { "floor-to-min",131,0,0,"Set final zero/near-zero values to min value per sample" },
@@ -128,6 +137,9 @@ static struct argp_option options[] = {
   { "iron-no-check-saturated",141,0,0,"Do not check for saturated values when training normalization" },
   { "iron-ignore-low",142,0,0,"Ignore reference values <= 1 when training normalization (default)" },
   { "iron-no-ignore-low",143,0,0,"Ignore reference values <= 0.00001 when training normalization" },
+  { "norm-median",144,"TARGET",OPTION_ARG_OPTIONAL,"Normalize median expression on chip to TARGET" },
+  { "mnorm-include-min",145,0,0,"include sample min during mean/median normalization" },
+  { "mnorm-exclude-min",146,0,0,"exclude sample min during mean/median normalization (default)" },
   {0}
 };
 
@@ -245,6 +257,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.use_mean_normalization     = false;
       flags.use_probeset_scaling       = false;
       flags.use_pairwise_normalization = false;
+      flags.use_median_normalization   = false;
       break;
     case 2:
       flags.use_normalization = false;
@@ -253,7 +266,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.use_probeset_scaling       = false;
       flags.use_pairwise_normalization = false;
       flags.iron_global_scaling_normalization = false;
-      flags.iron_untilt_normalization = false;
+      flags.iron_untilt_normalization  = false;
+      flags.use_median_normalization   = false;
       break;
 #if UNSUPPORTED
     case 3:
@@ -271,8 +285,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
       flags.bg_global = false;
       break;
     case 6:
-      flags.use_normalization = true;
+      flags.use_normalization          = true;
       flags.use_pairwise_normalization = true;
+
+      flags.use_mean_normalization     = false;
+      flags.use_median_normalization   = false;
+      flags.use_probeset_scaling       = false;
+      flags.use_quantile_normalization = false;
+
       flags.reuse_affinities = true;
       if (arg != NULL)
       {
@@ -439,6 +459,24 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     case 143:
       flags.iron_ignore_low = false;
       break;
+    /* median normalization */
+    case 144:
+      flags.use_normalization                  = true;
+      flags.use_mean_normalization             = false;
+      flags.use_median_normalization           = true;
+      flags.use_pairwise_normalization         = false;
+      flags.use_quantile_normalization         = false;
+      flags.use_probeset_scaling               = true;
+      flags.median_normalization_target_median = 0;
+      if (arg != NULL) 
+        flags.median_normalization_target_median = atof(arg);
+      break;
+    case 145:
+      flags.m_include_min = true;
+      break;
+    case 146:
+      flags.m_include_min = false;
+      break;
 
     
     case 'd':
@@ -448,7 +486,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     case 'm':
       flags.use_normalization = true;
       flags.use_mean_normalization = true;
+      flags.use_median_normalization = false;
       flags.use_pairwise_normalization = false;
+      flags.use_quantile_normalization = false;
       flags.use_probeset_scaling   = true;
       flags.mean_normalization_target_mean = 0;
       if (arg != NULL) 
