@@ -27,6 +27,7 @@
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
  * 09/13/23: added iron_check_saturated flag (EAW)
+ * 04/24/24: add variables for median normalization (EAW)
  *
  **************************************************************************/
 
@@ -56,6 +57,8 @@ typedef struct affy_combined_flag_struct
    *          use_quantile_normalization and use_pairwise_normalization.
    */
   bool use_mean_normalization;
+  bool use_median_normalization;
+  bool m_include_min;
 
   /** (false) Use a pairwise normalization of all probes prior to processing.
    *          This option is mutually exclusive with use_mean_normalization
@@ -68,6 +71,7 @@ typedef struct affy_combined_flag_struct
 
   /** (500) Mean normalize all probes to target mean value */
   double mean_normalization_target_mean;
+  double median_normalization_target_median;
 
   /* floor final zero values to the minimum non-zero value per chip */
   double floor_to_min_non_zero;
