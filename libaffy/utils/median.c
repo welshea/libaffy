@@ -20,6 +20,7 @@
  * 09/20/10: Pooled memory allocator (AMH)
  * 11/19/10: Fixed median calculations, added bioconductor compatability (EAW)
  * 08/12/20: removed bioconductor compatiblity, both gave same results (EAW)
+ * 05/16/24: optimized median math (EAW)
  *
  **************************************************************************/
 
@@ -77,12 +78,12 @@ double affy_median(double *x, int length, AFFY_COMBINED_FLAGS *f)
   qsort(x, length, sizeof(double), affy_median_sort);
 
 
-  half = length / 2;
+  half = length >> 1;
 
-  if (length % 2 == 1)
+  if (length % 2)
     med = x[half];
   else
-    med = (x[half] + x[half - 1]) / 2.0;
+    med = 0.5 * (x[half - 1] + x[half]);
 
   return (med);
 }
