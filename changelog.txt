@@ -1,3 +1,8 @@
+
+2024-12-17:
+ iron: add --normalize-before-bg --no-normalize-before-bg flags
+
+
 2024-03-25:
  iron: add --floor-to-min --floor-none --floor-non-zero-to-one flags
 
