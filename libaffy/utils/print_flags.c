@@ -25,6 +25,7 @@
  * 09/13/23: added support for iron_check_saturated (EAW)
  * 09/13/23: added support for iron_ignore_low (EAW)
  * 04/26/25: added support for median normalization (EAW)
+ * 04/12/17: added support for normalization before bg-sub (EAW)
  *
  **************************************************************************/
 
@@ -46,6 +47,8 @@ void print_flags(AFFY_COMBINED_FLAGS *f, char *output_file_name)
 
   printf("BG Correction (global override):     %s\n", 
          boolstr(f->use_background_correction));
+  printf("Normalize before BG Correction:      %s\n", 
+         boolstr(f->normalize_before_bg));
   printf("MAS5 BG Correction:                  %s\n", 
          boolstr(f->bg_mas5));
   printf("RMA BG Correction:                   %s\n", 
