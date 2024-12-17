@@ -39,6 +39,7 @@
  * 08/18/20: add flags to enable/disable iron or quantile probeset norm after
  *           probe norm (EAW)
  * 01/10/24: pass flags to affy_mean_normalization() (EAW)
+ * 12/16/24: add --normalize-before-bg (EAW)
  *
  **************************************************************************/
 
@@ -244,7 +245,8 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
 
     model_chip = model_chipset->chip[0];
 
-    if (f->use_background_correction)
+    /* Background correction, before normalization */
+    if (f->use_background_correction && !f->normalize_before_bg)
     {
       if (f->bg_mas5)
       {
@@ -328,7 +330,8 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
 
     /* Process chip according to various flags */
 
-    if (f->use_background_correction)
+    /* Background correction, before normalization */
+    if (f->use_background_correction && !f->normalize_before_bg)
     {
       if (f->bg_mas5)
       {
@@ -388,7 +391,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
     }
 
     /* we can only save memory and summarize one at a time if no quantile */
-    if (f->use_quantile_normalization == 0)
+    if (f->use_quantile_normalization == 0 && !f->normalize_before_bg)
     {
       /* Make present/absent calls after scaling/normalization takes place */
       if (f->output_present_absent &&
@@ -486,7 +489,153 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
       affy_quantile_normalization(result, 0, err);
       AFFY_CHECK_ERROR_GOTO(err, cleanup);
     }
+  }
 
+  /* Background correction, after normalization */
+  if (f->use_background_correction && f->normalize_before_bg)
+  {
+    /* model chip */
+    if (f->use_pairwise_normalization)
+    {
+      if (f->bg_mas5)
+      {
+        affy_mas5_background_correction(model_chipset, f, err);
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+      }
+      else if (f->bg_rma || f->bg_rma_both)
+      {
+        if (f->use_mm_probe_subtraction &&
+            model_chipset->chip[0]->cdf->no_mm_flag == 0)
+        {
+          affy_rma_background_correct_pm_mm_together(model_chipset,0,0,err);
+        }
+        else
+        {
+          if (f->bg_rma)
+          {
+            affy_rma_background_correct_pm_mm_together(model_chipset,0,1,err);
+          }
+          else
+          {
+            affy_rma_background_correct_pm_mm_together(model_chipset,0,0,err);
+          }
+        }
+      }
+      else if (f->bg_iron)
+      {
+        if (model_chipset->chip[0]->cdf->no_mm_flag == 0)
+        {
+          affy_rma_background_correct_pm_mm_together(model_chipset,0,0,err);
+        }
+        else
+        {
+          affy_rma_background_correct_pm_mm_together(model_chipset,0,0,err);
+        }
+      }
+      else if (f->bg_global)
+      {
+        affy_global_background_correct(model_chipset,0,err);
+      }
+    }
+
+    /* all chips */
+    for (i = 0; i < max_chips; i++)
+    {
+      /* Temp chipset now contains the most recently loaded chip */
+      temp->chip[0] = result->chip[i];
+      temp->num_chips = 1;
+
+      if (f->bg_mas5)
+      {
+        affy_mas5_background_correction(temp, f, err);
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+      }
+      else if (f->bg_rma || f->bg_rma_both)
+      {
+        if (f->use_mm_probe_subtraction &&
+            temp->chip[0]->cdf->no_mm_flag == 0)
+        {
+          affy_rma_background_correct_pm_mm_together(temp,0,0,err);
+        }
+        else
+        {
+          if (f->bg_rma)
+          {
+            affy_rma_background_correct_pm_mm_together(temp,0,1,err);
+          }
+          else
+          {
+            affy_rma_background_correct_pm_mm_together(temp,0,0,err);
+          }
+        }
+      }
+      else if (f->bg_iron)
+      {
+        if (temp->chip[0]->cdf->no_mm_flag == 0)
+        {
+          affy_rma_background_correct_pm_mm_together(temp,0,0,err);
+        }
+        else
+        {
+          affy_rma_background_correct_pm_mm_together(temp,0,0,err);
+        }
+      }
+      else if (f->bg_global)
+      {
+        affy_global_background_correct(temp,0,err);
+      }
+    }
+
+    /* renormalize after background subtraction */
+    if (f->use_pairwise_normalization)
+    {
+      info("Performing 2nd pass post-BG pairwise probe normalization...");
+
+      for (i = 0; i < max_chips; i++)
+      {
+        /* Temp chipset now contains the most recently loaded chip */
+        temp->chip[0] = result->chip[i];
+        temp->num_chips = 1;
+
+        affy_pairwise_normalization(temp, 
+                                    model_chip, 
+                                    AFFY_PAIRWISE_DEFAULT,
+                                    f, err);
+
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+
+        affy_floor_probe(temp, 1E-5, err);
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+
+        info("done.\n");
+      }
+    }
+    else if (f->use_normalization && f->use_mean_normalization)
+    {
+      info("Performing 2nd pass post-BG pairwise mean normalization...");
+
+      affy_mean_normalization(result, f->mean_normalization_target_mean, f);
+    }
+    else if (f->use_quantile_normalization)
+    {
+      info("Performing 2nd pass post-BG quantile normalization...");
+
+      if (f->bg_rma) /* use PM, skipping MM which are now all zeroed */
+      {
+        affy_quantile_normalization(result, 1, err);
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+      }
+      else    /* use both PM and MM */
+      {
+        affy_quantile_normalization(result, 0, err);
+        AFFY_CHECK_ERROR_GOTO(err, cleanup);
+      }
+    }
+  }
+
+  /* probeset stuff, if we didn't do it earlier */
+  if (f->use_quantile_normalization || f->normalize_before_bg)
+  {
     /* Make present/absent calls after scaling/normalization takes place */
     if (f->output_present_absent &&
         (f->use_background_correction == 0 || f->bg_mas5 ||
@@ -601,6 +750,7 @@ AFFY_CHIPSET *affy_mas5(char **filelist, AFFY_COMBINED_FLAGS *f, AFFY_ERROR *err
   }
 
 
+  /* summarize the model chip prior to pairwise probeset normalization */
   if (f->use_tukey_biweight && f->use_pairwise_normalization)
   {
     /* apply postponed MM subtraction to model chipset, calculate probesets */
