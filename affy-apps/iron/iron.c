@@ -37,6 +37,8 @@
  * 01/10/24: change -m description to document that it has actually always
  *           been probe-only, not probesets, as originally described
  * 03/25/24: --floor-to-min, --floor-none, --floor-non-zero-to-one flags
+ * 12/16/24: add --normalize-before-bg option (EAW)
+ * 12/17/24: add --no-normalize-before-bg option (EAW)
  *
  **************************************************************************/
 
@@ -123,6 +125,8 @@ static struct argp_option options[] = {
   { "iron-no-check-saturated",141,0,0,"Do not check for saturated values when training normalization" },
   { "iron-ignore-low",142,0,0,"Ignore reference values <= 1 when training normalization (default)" },
   { "iron-no-ignore-low",143,0,0,"Ignore reference values <= 0.00001 when training normalization" },
+  { "normalize-before-bg",144,0,0,"Normalize before (and after) background subtraction" },
+  { "no-normalize-before-bg",145,0,0,"Do not normalize before background subtraction (default)" },
   {0}
 };
 
@@ -433,6 +437,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     /* --iron-no-ignore-low */
     case 143:
       flags.iron_ignore_low = false;
+      break;
+    /* --normalize-before-bg */
+    case 144:
+      flags.normalize_before_bg = true;
+      break;
+    case 145:
+      flags.normalize_before_bg = false;
       break;
 
     case 'g':
