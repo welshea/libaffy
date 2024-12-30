@@ -1,3 +1,4 @@
+#!/usr/bin/sh
 mkdir bin
 
 cp -a affy-apps/scripts/agilent_to_spreadsheet.pl bin
