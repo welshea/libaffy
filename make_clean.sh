@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/bash
 rm -rf .sconf_temp
 rm config.log
 rm ./libutils/config.log
