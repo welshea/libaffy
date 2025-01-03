@@ -123,8 +123,8 @@ static struct argp_option options[] = {
   { "no-probeset-norm",139,0,0,"Disable probeset normalization after probe normalization" },
   { "iron-check-saturated",140,0,0,"Check/ignore 16-bit saturated values when training normalization (default)" },
   { "iron-no-check-saturated",141,0,0,"Do not check for saturated values when training normalization" },
-  { "iron-ignore-low",142,0,0,"Ignore reference values <= 1 when training normalization (default)" },
-  { "iron-no-ignore-low",143,0,0,"Ignore reference values <= 0.00001 when training normalization" },
+  { "iron-ignore-low",142,0,0,"Ignore values < 1 when training normalization (default)" },
+  { "iron-no-ignore-low",143,0,0,"Ignore values < 0.00001 when training normalization" },
   { "normalize-before-bg",144,0,0,"Normalize before (and after) background subtraction" },
   { "no-normalize-before-bg",145,0,0,"Do not normalize before background subtraction (default)" },
   {0}
